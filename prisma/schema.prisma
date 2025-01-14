@@ -1,0 +1,195 @@
+// Схема таблиц для ORM Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id  Int    @id @default(autoincrement())
+  telegram_user_id    Int @unique
+  email               String @unique
+  telegram_name       String? @unique
+  password            String
+  is_activated        Boolean @default(false)
+  is_banned           Boolean @default(false) //поля таблицы
+  created_at          DateTime @default(now())
+
+  JWT_tokens          JWT_tokens[] // отношение к таблице JWT_tokens, один к многим
+  user_roles          user_roles[]
+  subscription        subscription?
+  free_subscription   free_subscription?
+  subscription_statictic subscription_statictic?
+  activation_codes    activation_codes? // отношение к таблице activation_codes, один к одному
+  payments            payments[]
+  vpn_keys            vpn_keys[]
+  connection_statistic connection_statistic[]
+  user_promocodes     user_promocodes[]
+  referral_user       referral_user?
+}
+
+model JWT_tokens {
+  id                  Int      @id @default(autoincrement())
+  user_id             Int
+  refresh_token       String   @unique
+  deletion_date       DateTime
+  created_at          DateTime @default(now())
+  user                user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model roles {
+  id                  Int         @id @default(autoincrement())
+  value               String
+  description         String
+  user_roles          user_roles[]
+}
+
+model user_roles {
+  id                  Int   @id @default(autoincrement())
+  role_id             Int
+  user_id             Int
+  created_at          DateTime @default(now())
+  roles               roles @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  user                user  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model activation_codes {
+  id                  Int    @id @default(autoincrement())
+  user_id             Int @unique
+  activation_code     String @unique
+  deletion_date       DateTime
+  created_at          DateTime @default(now())
+  user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model subscription {
+  id                  Int    @id @default(autoincrement())
+  user_id             Int @unique
+  is_free             Boolean
+  subscription_status Boolean
+  is_warning_sent     Boolean
+  subscription_start  DateTime
+  subscription_end    DateTime
+  created_at          DateTime @default(now())
+  user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+}
+
+model free_subscription {
+  id                  Int    @id @default(autoincrement())
+  user_id             Int @unique
+  date_last_free_sub  DateTime
+  created_at          DateTime @default(now())
+  user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+}
+
+model subscription_statictic {
+  id                  Int    @id @default(autoincrement())
+  user_id             Int @unique
+  total_day_subscription      Int
+  total_day_free_subscription Int
+  total_amount        Int
+  user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model payments {
+  id                  Int    @id @default(autoincrement())
+  user_id             Int
+  payment_id          String @unique
+  amount              Int
+  status              String
+  message_id          Int
+  processed           Boolean?
+  subscription_period Int
+  created_at          DateTime @default(now())
+  user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model vpn_keys {
+  id                  Int    @id @default(autoincrement())
+  user_id             Int
+  key                 String
+  protocol_id         Int
+  key_id              Int
+  region_id           Int
+  is_active           Boolean
+  generated_at        DateTime @default(now())
+  user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  region              region @relation(fields: [region_id], references: [id], onDelete: Cascade)
+  protocol            protocol @relation(fields: [protocol_id], references: [id], onDelete: Cascade)
+  connection_statistic  connection_statistic[]
+}
+
+model region {
+  id                  Int    @id @default(autoincrement())
+  region_name         String @unique
+  vpn_keys            vpn_keys[]
+  connection_statistic  connection_statistic[]
+}
+
+model protocol {
+  id                  Int    @id @default(autoincrement())
+  protocol_name       String
+  vpn_keys            vpn_keys[]
+  connection_statistic  connection_statistic[]
+}
+
+model operating_system {
+  id                  Int    @id @default(autoincrement())
+  OS_name             String
+  connection_statistic connection_statistic[]
+}
+
+model connection_statistic {
+  id                  Int    @id @default(autoincrement())
+  user_id             Int
+  region_id           Int
+  traffic             Int
+  time_connection     Int
+  vpn_key_id          Int
+  os_id               Int
+  protocol_id         Int
+  generated_at        DateTime @default(now())
+  user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  region              region @relation(fields: [region_id], references: [id], onDelete: Cascade)
+  protocol            protocol @relation(fields: [protocol_id], references: [id], onDelete: Cascade)
+  vpn_key             vpn_keys @relation(fields: [vpn_key_id], references: [id], onDelete: Cascade)
+  operating_system    operating_system @relation(fields: [os_id], references: [id], onDelete: Cascade)
+}
+
+model promo_codes {
+  id                  Int    @id @default(autoincrement())
+  code                String @unique
+  type                String
+  discount            Int
+  period              Int
+  created_at          DateTime @default(now())
+  user_promocodes     user_promocodes[]
+  referral_code_in    referral_user[] @relation("CodeInRelation")
+  referral_code_out   referral_user[] @relation("CodeOutRelation")
+}
+
+model referral_user {
+  id                  Int    @id @default(autoincrement())
+  user_id             Int    @unique
+  code_in_id          Int
+  code_out_id         Int
+  user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  code_in             promo_codes @relation("CodeInRelation", fields: [code_in_id], references: [id], onDelete: Cascade)
+  code_out            promo_codes @relation("CodeOutRelation", fields: [code_out_id], references: [id], onDelete: Cascade)
+}
+
+model user_promocodes {
+  id                  Int    @id @default(autoincrement())
+  user_id             Int
+  code_id             Int
+  apply_date          DateTime @default(now())
+  used_date           DateTime
+  user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  promo_codes         promo_codes @relation(fields: [code_id], references: [id], onDelete: Cascade)
+}
