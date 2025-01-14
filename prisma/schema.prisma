@@ -11,12 +11,13 @@ datasource db {
 
 model user {
   id  Int    @id @default(autoincrement())
-  telegram_user_id    Int @unique
+  telegram_user_id    Int? @unique
   email               String @unique
   telegram_name       String? @unique
   password            String
   is_activated        Boolean @default(false)
   is_banned           Boolean @default(false) //поля таблицы
+  ban_reason          String?
   created_at          DateTime @default(now())
 
   JWT_tokens          JWT_tokens[] // отношение к таблице JWT_tokens, один к многим
