@@ -62,7 +62,6 @@ model activation_codes {
   id                  Int    @id @default(autoincrement())
   user_id             Int @unique
   activation_code     String @unique
-  deletion_date       DateTime
   created_at          DateTime @default(now())
   user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }

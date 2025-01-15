@@ -86,10 +86,7 @@ export class UserService {
       });
       return { user, role };
     }
-    throw new HttpException(
-      'Пользователь или роль не найдены',
-      HttpStatus.NOT_FOUND,
-    );
+    throw new HttpException('User or role not found', HttpStatus.NOT_FOUND);
   }
   async deleteUser(userId: number) {
     await this.prisma.user.delete({
@@ -98,12 +95,13 @@ export class UserService {
       },
     });
   }
-  async banUser(dto: banUserDto) {  //Добавить функционал отлючения впн ключей по готовности
+  async banUser(dto: banUserDto) {
+    //Добавить функционал отлючения впн ключей по готовности
     const user = await this.prisma.user.findUnique({
       where: { id: dto.userId },
     });
     if (!user) {
-      throw new HttpException('Пользователь не найден', HttpStatus.NOT_FOUND);
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
     user.is_banned = true;
     user.ban_reason = dto.banReason;

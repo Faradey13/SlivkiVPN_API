@@ -18,13 +18,13 @@ import { addRoleToUserDto } from './dto/addRoleToUserDto';
 import { banUserDto } from './dto/banUserDto';
 
 @ApiTags('Пользователи')
-@Controller('users')
+@Controller('user')
 export class UserController {
   constructor(private usersService: UserService) {}
 
   @ApiOperation({ summary: 'создание пользователя' })
   @ApiResponse({ status: 200, type: userDto })
-  @Post()
+  @Post('/new_user')
   create(@Body() userDto: createUserDto) {
     return this.usersService.createUser(userDto);
   }
@@ -33,7 +33,7 @@ export class UserController {
   @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Получение всех пользователей' })
   @ApiResponse({ status: 200, type: [userDto] })
-  @Get()
+  @Get('/get_all')
   getAll() {
     return this.usersService.getAllUsers();
   }
