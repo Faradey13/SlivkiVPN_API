@@ -20,12 +20,6 @@ export class userDto {
   telegram_name: string | null;
 
   @ApiProperty({
-    example: 'hashed_password',
-    description: 'Пароль пользователя',
-  })
-  password: string;
-
-  @ApiProperty({
     example: false,
     description: 'Активирован ли пользователь',
   })

@@ -1,28 +1,21 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../token/token.service';
 import { UserService } from '../user/user.service';
 import { createUserDto } from '../user/dto/createUser.dto';
-import * as bcrypt from 'bcryptjs';
 import * as nodemailer from 'nodemailer';
 import * as process from 'node:process';
-import { TokenDto } from '../token/dto/tokenDto';
 import * as uuid from 'uuid';
+import { AuthResponseDto } from '../token/dto/tokenDto';
 
 @Injectable()
 export class AuthService {
   private transporter: nodemailer.Transporter;
   private readonly logger = new Logger();
   constructor(
-    private userService: UserService,
-    private tokenService: TokenService,
-    private prisma: PrismaService,
+    private readonly userService: UserService,
+    private readonly tokenService: TokenService,
+    private readonly prisma: PrismaService,
   ) {
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
@@ -46,7 +39,8 @@ export class AuthService {
         subject: 'Регистрация на сайте SlivkiVPN',
         text: 'Добро пожаловать, введите этот код для активации акаунта',
         html: `
-                <div><a href="${link}">${link}</a></div>
+                <div><a href="http://localhost:${process.env.PORT}/auth/activation/${link}">
+                Авторизоваться на SlivkiVPN</a></div>
                 `,
       });
       this.logger.log('Email sent successfully');
@@ -58,32 +52,27 @@ export class AuthService {
   async generateActivationCode() {
     return uuid.v4();
   }
-  async registration(userDto: createUserDto) {
-    const candidate = await this.userService.getUserByEmail(userDto.email);
-    if (candidate) {
-      throw new HttpException('user already exist', HttpStatus.BAD_REQUEST);
-    }
-    const hashPassword = await bcrypt.hash(userDto.password, 5);
+  async authorization(userDto: createUserDto) {
     const activationCode = await this.generateActivationCode();
-    const user = await this.userService.createUser({
-      ...userDto,
-      password: hashPassword,
-    });
+    let candidate = await this.userService.getUserByEmail(userDto.email);
+    if (!candidate) {
+      candidate = await this.userService.createUser({
+        ...userDto,
+      });
+    }
     await this.sendEmailActivationLink(userDto.email, activationCode);
-    const findUser = await this.prisma.user.findUnique({
-      where: { email: user.email },
-    });
-    await this.prisma.activation_codes.create({
-      data: {
+    await this.prisma.activation_codes.upsert({
+      where: { user_id: candidate.id },
+      update: { activation_code: activationCode },
+      create: {
         activation_code: activationCode,
-        user_id: findUser.id,
+        user_id: candidate.id,
       },
     });
 
-    return await this.tokenService.newTokens(user);
+    return 'Authorization link sent to email';
   }
-
-  async activate(activationCode: string) {
+  async activate(activationCode: string): Promise<AuthResponseDto | string> {
     try {
       const result = await this.prisma.activation_codes.findFirst({
         where: {
@@ -115,6 +104,12 @@ export class AuthService {
           is_activated: true,
         },
       });
+      await this.prisma.activation_codes.delete({
+        where: {
+          activation_code: activationCode,
+        },
+      });
+      return await this.tokenService.newTokens(result.user);
     } catch (error) {
       throw new Error(error);
     }
@@ -142,39 +137,6 @@ export class AuthService {
       include: { user: true },
     });
     await this.sendEmailActivationLink(result.user.email, newActivationCode);
-  }
-
-  async login(userDto: createUserDto) {
-    const user = await this.userService.getUserByEmail(userDto.email);
-    if (!user) {
-      throw new HttpException(
-        'User with this email already exists',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    const passwordEquals = await bcrypt.compare(
-      userDto.password,
-      user.password,
-    );
-    if (!passwordEquals) {
-      throw new UnauthorizedException({
-        message: 'Email or password is incorrect',
-      });
-    }
-    const userWithRoles = await this.userService.getUserWithRoles(user.id);
-
-    const userDTO: TokenDto = {
-      id: userWithRoles.id,
-      roles: userWithRoles.roles,
-      is_activated: userWithRoles.is_activated,
-      email: userWithRoles.email,
-    };
-    console.log(`login dto${userDTO}`);
-    const tokens = await this.tokenService.generateToken({ ...userDTO });
-    console.log(tokens);
-    await this.tokenService.saveToken(userDTO.id, tokens.refreshToken);
-
-    return { ...tokens, user: userDTO };
   }
 
   async logout(refreshToken: string) {

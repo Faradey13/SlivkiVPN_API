@@ -23,34 +23,13 @@ export class AuthController {
 
   @ApiOperation({ summary: 'регистрация пользователя' })
   @ApiResponse({ status: 200 })
-  @Post('/registration')
-  async registration(@Body() userDto: createUserDto, @Res() res: Response) {
+  @Post('/authorization')
+  async authorization(@Body() userDto: createUserDto) {
     try {
-      const UserData = await this.authService.registration(userDto);
-      res.cookie('refreshToken', UserData.refreshToken, {
-        httpOnly: true,
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-      });
-      return res.json(UserData);
+      console.log(userDto);
+      await this.authService.authorization(userDto);
     } catch (e) {
       throw new BadRequestException(`Registration error: ${e.message}`);
-    }
-  }
-
-  @ApiOperation({ summary: 'вход на сайт' })
-  @ApiResponse({ status: 200 })
-  @Post('/login')
-  async login(@Body() userDto: createUserDto, @Res() res: Response) {
-    try {
-      const UserData = await this.authService.login(userDto);
-      res.cookie('refreshToken', UserData.refreshToken, {
-        httpOnly: true,
-        secure: false, //поправить на true на проде, только https
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-      });
-      return res.json(UserData);
-    } catch (e) {
-      throw new BadRequestException(`Authorization error: ${e.message}`);
     }
   }
 
@@ -62,14 +41,25 @@ export class AuthController {
     @Param('link', ParseUUIDPipe) link: string,
   ) {
     try {
-      await this.authService.activate(link);
-      res.redirect('https://i.gifer.com/6Kn6.gif');
+      const UserData = await this.authService.activate(link);
+
+      if (typeof UserData === 'object' && UserData.refreshToken) {
+        res.cookie('refreshToken', UserData.refreshToken, {
+          httpOnly: true,
+          maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        return UserData;
+      }
+      res.status(400).send({
+        message:
+          typeof UserData === 'string' ? UserData : 'Unknown activation error',
+      });
     } catch (e) {
       throw new BadRequestException(`Activation error: ${e.message}`);
     }
   }
 
-  @ApiOperation({ summary: 'выход и акаунта' })
+  @ApiOperation({ summary: 'выход из акаунта' })
   @ApiResponse({ status: 200 })
   @Post('/logout')
   async logout(@Req() req: Request, @Res() res: Response) {

@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { roles } from '@prisma/client';
-import { IsBoolean, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsNumber } from 'class-validator';
+
 
 export class TokenDto {
   @ApiProperty({ example: 'email@email.com', description: 'Почта' })
-  @IsString({ message: 'должно быть строкой' })
+  @IsEmail()
   readonly email: string;
   @ApiProperty({ example: 1, description: 'уникальный индитификатор ' })
   @IsNumber({}, { message: 'должно быть числом' })
@@ -14,4 +15,23 @@ export class TokenDto {
   @ApiProperty({ example: true, description: 'активирован ли акаунт' })
   @IsBoolean({ message: 'true or false' })
   readonly is_activated: boolean;
+}
+
+export class AuthResponseDto {
+  @ApiProperty({
+    description: 'Данные пользователя',
+  })
+  user: TokenDto;
+
+  @ApiProperty({
+    description: 'JWT-токен доступа',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  })
+  accessToken: string;
+
+  @ApiProperty({
+    description: 'JWT-токен для обновления',
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  })
+  refreshToken: string;
 }

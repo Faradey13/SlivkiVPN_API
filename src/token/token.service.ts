@@ -2,12 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { TokenDto } from './dto/tokenDto';
+import { user } from '@prisma/client';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class TokenService {
   constructor(
-    private jwtService: JwtService,
-    private prisma: PrismaService,
+    private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
+    private readonly userService: UserService,
   ) {}
   //генерация токенов
   async generateToken(payload: TokenDto) {
@@ -59,12 +62,13 @@ export class TokenService {
     }
   }
   //получение новых токенов(обьеденяем методы выше)
-  async newTokens(user: TokenDto) {
+  async newTokens(user: user) {
+    const userWithRole = await this.userService.getUserWithRoles(user.id);
     const tokenDto = {
-      id: user.id,
-      email: user.email,
-      is_activated: user.is_activated,
-      roles: user.roles,
+      id: userWithRole.id,
+      email: userWithRole.email,
+      is_activated: userWithRole.is_activated,
+      roles: userWithRole.roles,
     };
     const tokens = await this.generateToken({ ...tokenDto });
     await this.saveToken(user.id, tokens.refreshToken);

@@ -38,6 +38,23 @@ export class UserService {
       roles: [role],
     };
   }
+
+  async findOrCreateUser(
+    dto: createUserDto,
+  ): Promise<{ user: UserWithRoles; isExisting: boolean }> {
+    const existingUser = await this.prisma.user.findUnique({
+      where: {
+        email: dto.email,
+      },
+    });
+    if (existingUser) {
+      const userWithRoles = await this.getUserWithRoles(existingUser.id);
+      return { user: userWithRoles, isExisting: true };
+    }
+    const newUser = await this.createUser(dto);
+    return { user: newUser, isExisting: false };
+  }
+
   async getAllUsers() {
     return this.prisma.user.findMany();
   }
