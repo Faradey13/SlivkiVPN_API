@@ -169,9 +169,7 @@ export class AuthService {
       is_activated: userWithRoles.is_activated,
       email: userWithRoles.email,
     };
-    console.log(`login dto${userDTO}`);
     const tokens = await this.tokenService.generateToken({ ...userDTO });
-    console.log(tokens);
     await this.tokenService.saveToken(userDTO.id, tokens.refreshToken);
 
     return { ...tokens, user: userDTO };

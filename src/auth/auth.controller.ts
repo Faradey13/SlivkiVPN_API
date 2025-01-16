@@ -26,6 +26,7 @@ export class AuthController {
   @Post('/registration')
   async registration(@Body() userDto: createUserDto, @Res() res: Response) {
     try {
+      console.log(userDto);
       const UserData = await this.authService.registration(userDto);
       res.cookie('refreshToken', UserData.refreshToken, {
         httpOnly: true,

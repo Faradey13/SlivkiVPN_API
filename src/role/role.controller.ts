@@ -13,7 +13,7 @@ export class RoleController {
   @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Создать роль' })
   @ApiResponse({ status: 200 })
-  @Post()
+  @Post('/new_role')
   create(@Body() dto: createRoleDto) {
     return this.roleService.createRole(dto);
   }
@@ -21,6 +21,7 @@ export class RoleController {
   @Roles('ADMIN')
   @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Выдать роль' })
+
   @ApiResponse({ status: 200 })
   @Get('/:value')
   getByValue(@Param('value') value: string) {

@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { roles } from '@prisma/client';
-import { IsBoolean, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsNumber } from 'class-validator';
 
 export class TokenDto {
   @ApiProperty({ example: 'email@email.com', description: 'Почта' })
-  @IsString({ message: 'должно быть строкой' })
+  @IsEmail()
   readonly email: string;
   @ApiProperty({ example: 1, description: 'уникальный индитификатор ' })
   @IsNumber({}, { message: 'должно быть числом' })
