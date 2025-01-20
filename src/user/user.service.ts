@@ -5,6 +5,7 @@ import { createUserDto } from './dto/createUser.dto';
 import { roles, user } from '@prisma/client';
 import { addRoleToUserDto } from './dto/addRoleToUserDto';
 import { banUserDto } from './dto/banUserDto';
+import { OutlineVpnService } from '../outline-vpn/outline-vpn.service';
 
 export type UserWithRoles = user & {
   roles: roles[];
@@ -15,6 +16,7 @@ export class UserService {
   constructor(
     private prisma: PrismaService,
     private roleService: RoleService,
+    private outline: OutlineVpnService,
   ) {}
   async createUser(dto: createUserDto): Promise<UserWithRoles> {
     const user = await this.prisma.user.create({
@@ -113,7 +115,7 @@ export class UserService {
     });
   }
   async banUser(dto: banUserDto) {
-    //Добавить функционал отлючения впн ключей по готовности
+    await this.outline.removeAllKeysUser(dto.userId);
     const user = await this.prisma.user.findUnique({
       where: { id: dto.userId },
     });

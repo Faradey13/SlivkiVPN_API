@@ -127,6 +127,8 @@ model vpn_keys {
 model region {
   id                  Int    @id @default(autoincrement())
   region_name         String @unique
+  apiUrl              String
+  fingerprint         String
   vpn_keys            vpn_keys[]
   connection_statistic  connection_statistic[]
 }
