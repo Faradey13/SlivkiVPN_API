@@ -25,7 +25,7 @@ model user {
   free_subscription   free_subscription?
   subscription_statictic subscription_statictic?
   activation_codes    activation_codes? // отношение к таблице activation_codes, один к одному
-  payments            payments[]
+  payment             payment[]
   vpn_keys            vpn_keys[]
   connection_statistic connection_statistic[]
   user_promocodes     user_promocodes[]
@@ -65,12 +65,20 @@ model activation_codes {
   user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
+model subscription_plans {
+  id                  Int    @id @default(autoincrement())
+  name                String
+  price               Int
+  period              Int
+  payment             payment?
+}
+
 model subscription {
   id                  Int    @id @default(autoincrement())
   user_id             Int @unique
   is_free             Boolean
   subscription_status Boolean
-  is_warning_sent     Boolean
+  is_warning_sent     Boolean @default(false)
   subscription_start  DateTime
   subscription_end    DateTime
   created_at          DateTime @default(now())
@@ -96,18 +104,22 @@ model subscription_statictic {
   user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
-model payments {
+model payment {
   id                  Int    @id @default(autoincrement())
   user_id             Int
   payment_id          String @unique
+  plan_id             Int @unique
   amount              Int
+  period              Int
   status              String
   message_id          Int
   processed           Boolean?
   subscription_period Int
   created_at          DateTime @default(now())
   user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  subscription_plans  subscription_plans @relation(fields: [plan_id], references: [id], onDelete: Cascade)
 }
+
 
 model vpn_keys {
   id                  Int    @id @default(autoincrement())
@@ -127,6 +139,7 @@ model vpn_keys {
 model region {
   id                  Int    @id @default(autoincrement())
   region_name         String @unique
+  flag                String
   apiUrl              String
   fingerprint         String
   vpn_keys            vpn_keys[]

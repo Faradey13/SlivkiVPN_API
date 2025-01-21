@@ -63,6 +63,9 @@ export class UserService {
   async getUserByEmail(email: string) {
     return this.prisma.user.findUnique({ where: { email: email } });
   }
+  async getUserByTgId(tgId: number) {
+    return this.prisma.user.findUnique({ where: {telegram_user_id: tgId}});
+  }
   async getUserById(id: number) {
     return this.prisma.user.findUnique({ where: { id: id } });
   }

@@ -63,11 +63,7 @@ export class createKeyDto {
     example: 1,
   })
   regionId: number;
-  @ApiProperty({
-    description: 'лимит трафика гб',
-    example: 1,
-  })
-  limit: number;
+
 }
 
 export class removeKeyDto {

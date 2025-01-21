@@ -4,6 +4,6 @@ import { RegionController } from './region.controller';
 
 @Module({
   providers: [RegionService],
-  controllers: [RegionController]
+  controllers: [RegionController],
 })
 export class RegionModule {}

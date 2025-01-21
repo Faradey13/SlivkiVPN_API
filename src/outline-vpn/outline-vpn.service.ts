@@ -25,6 +25,11 @@ export class OutlineVpnService {
   }
 
   async createKey(dto: createKeyDto) {
+    const region = await this.prisma.region.findUnique({
+      where: {
+        id: dto.regionId,
+      },
+    });
     try {
       const outlineClient = await this.createOutlineClient(dto.regionId);
 
@@ -32,17 +37,18 @@ export class OutlineVpnService {
       try {
         newKey = await outlineClient.createAccessKey({
           name: String(dto.userId),
-          limit: { bytes: this.gbToBites(dto.limit) },
         });
-      } catch (err) {
-        console.error(`Failed to create access key in Outline: ${err.message}`);
+      } catch (error) {
+        console.error(
+          `Failed to create access key in Outline: ${error.message}`,
+        );
         throw new Error('Failed to create access key on the Outline server.');
       }
 
       try {
         newKey.accessUrl = newKey.accessUrl.replace(
           '?outline=1',
-          '#SLIVKI_VPN_RUSSIA',
+          `#SLIVKI_VPN_${region.region_name}`,
         );
         await this.prisma.vpn_keys.create({
           data: {
@@ -54,13 +60,28 @@ export class OutlineVpnService {
             protocol_id: Number(process.env.OUTLINE_PROTOCOL_ID),
           },
         });
-      } catch (err) {
-        console.error(`Failed to save VPN key to database: ${err.message}`);
+      } catch (error) {
+        console.error(`Failed to save VPN key to database: ${error.message}`);
         throw new Error('Failed to save VPN key to the database.');
       }
-    } catch (err) {
-      console.error(`Error in createKey: ${err.message}`);
+    } catch (error) {
+      console.error(`Error in createKey: ${error.message}`);
       throw new Error('Failed to create VPN key. Please try again.');
+    }
+  }
+
+  async createSetKeys(userId: number) {
+    const regions = await this.prisma.region.findMany();
+    try {
+      for (const region of regions) {
+        await this.createKey({
+          regionId: region.id,
+          userId: userId,
+        });
+      }
+    } catch (error) {
+      console.error(`Error in createKeys: ${error.message}`);
+      throw new Error('Failed to create VPN keys. Please try again.');
     }
   }
 
@@ -70,8 +91,10 @@ export class OutlineVpnService {
 
       try {
         await outlineClient.deleteAccessKey(String(dto.keyId));
-      } catch (err) {
-        console.error(`Failed to delete access key in Outline: ${err.message}`);
+      } catch (error) {
+        console.error(
+          `Failed to delete access key in Outline: ${error.message}`,
+        );
         throw new Error('Failed to delete access key on the Outline server.');
       }
 

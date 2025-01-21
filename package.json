@@ -36,10 +36,12 @@
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "clipboardy": "^4.0.0",
     "cookie-parser": "^1.4.7",
     "crypto-js": "^4.2.0",
     "express-session": "^1.18.1",
     "google-auth-library": "^9.15.0",
+    "nestjs-telegraf": "^2.8.1",
     "nodemailer": "^6.9.16",
     "outlinevpn-api": "^3.0.0",
     "passport": "^0.7.0",
@@ -47,6 +49,7 @@
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
+    "telegraf": "^4.16.3",
     "uuid": "^11.0.5"
   },
   "devDependencies": {

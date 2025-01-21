@@ -4,6 +4,6 @@ import { VpnProtocolController } from './vpn-protocol.controller';
 
 @Module({
   providers: [VpnProtocolService],
-  controllers: [VpnProtocolController]
+  controllers: [VpnProtocolController],
 })
 export class VpnProtocolModule {}

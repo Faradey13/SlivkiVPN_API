@@ -7,11 +7,27 @@ import { AuthModule } from './auth/auth.module';
 import { OutlineVpnModule } from './outline-vpn/outline-vpn.module';
 import { RegionModule } from './region/region.module';
 import { VpnProtocolModule } from './vpn-protocol/vpn-protocol.module';
-import { SubscriptionModule } from './module/subscription/subscription.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [UserModule, PrismaModule, RoleModule, TokenModule, AuthModule, OutlineVpnModule, RegionModule, VpnProtocolModule, SubscriptionModule],
+  imports: [
+    UserModule,
+    PrismaModule,
+    RoleModule,
+    TokenModule,
+    AuthModule,
+    OutlineVpnModule,
+    RegionModule,
+    VpnProtocolModule,
+    SubscriptionModule,
+    TelegramBotModule,
+
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+  ],
   controllers: [],
   providers: [],
 })
