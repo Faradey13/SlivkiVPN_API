@@ -34,10 +34,4 @@ export class AuthGoogleService {
     }
     throw new Error('Invalid token');
   }
-
-  async validateUser(userData: any) {
-    // Логика поиска или создания пользователя в базе данных
-    // и проверка существования пользователя в системе
-    return userData; // Возвращает данные пользователя для JWT
-  }
 }

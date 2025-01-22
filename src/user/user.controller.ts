@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { createUserDto } from './dto/createUser.dto';
 import { UserService } from './user.service';
@@ -48,10 +39,7 @@ export class UserController {
       const user = await this.usersService.getUserById(id);
       return user;
     } catch (error) {
-      throw new HttpException(
-        `Something wrong: ${error}`,
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException(`Something wrong: ${error}`, HttpStatus.NOT_FOUND);
     }
   }
 

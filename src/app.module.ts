@@ -10,6 +10,12 @@ import { VpnProtocolModule } from './vpn-protocol/vpn-protocol.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
 import { ConfigModule } from '@nestjs/config';
+import { PaymentModule } from './payment/payment.module';
+import { ReferralModule } from './referral/referral.module';
+import { PromoModule } from './promo/promo.module';
+import { AdminModule } from './admin/admin.module';
+import { StatisticModule } from './statistic/statistic.module';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -23,10 +29,15 @@ import { ConfigModule } from '@nestjs/config';
     VpnProtocolModule,
     SubscriptionModule,
     TelegramBotModule,
-
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    PaymentModule,
+    ReferralModule,
+    PromoModule,
+    AdminModule,
+    StatisticModule,
+    TaskModule,
   ],
   controllers: [],
   providers: [],

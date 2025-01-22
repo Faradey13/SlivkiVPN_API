@@ -6,6 +6,8 @@ import { roles, user } from '@prisma/client';
 import { addRoleToUserDto } from './dto/addRoleToUserDto';
 import { banUserDto } from './dto/banUserDto';
 import { OutlineVpnService } from '../outline-vpn/outline-vpn.service';
+import { PromoService } from '../promo/promo.service';
+import * as process from 'node:process';
 
 export type UserWithRoles = user & {
   roles: roles[];
@@ -17,6 +19,7 @@ export class UserService {
     private prisma: PrismaService,
     private roleService: RoleService,
     private outline: OutlineVpnService,
+    private PromoService: PromoService,
   ) {}
   async createUser(dto: createUserDto): Promise<UserWithRoles> {
     const user = await this.prisma.user.create({
@@ -24,7 +27,7 @@ export class UserService {
         ...dto,
       },
     });
-
+    console.log(user.id);
     const role: roles = await this.roleService.getRoleByValue('USER');
 
     await this.prisma.user_roles.createMany({
@@ -35,15 +38,35 @@ export class UserService {
         },
       ],
     });
+    let promoCode = this.PromoService.generatePromoCode(5, 'Join' + user.id);
+    const uniqTest = this.prisma.promo_codes.findFirst({ where: { code: promoCode } });
+    if (uniqTest) promoCode = this.PromoService.generatePromoCode(5, 'Join' + user.id);
+
+    await this.prisma.$transaction(async (prisma) => {
+      const promoCodeRecord = await prisma.promo_codes.create({
+        data: {
+          code: promoCode,
+          type: 'referral',
+          discount: Number(process.env.REFERRAL_DISCOUNT),
+          period: 1000000,
+        },
+      });
+
+      await prisma.referral_user.create({
+        data: {
+          user_id: user.id,
+          code_out_id: promoCodeRecord.id,
+        },
+      });
+    });
+
     return {
       ...user,
       roles: [role],
     };
   }
 
-  async findOrCreateUser(
-    dto: createUserDto,
-  ): Promise<{ user: UserWithRoles; isExisting: boolean }> {
+  async findOrCreateUser(dto: createUserDto): Promise<{ user: UserWithRoles; isExisting: boolean }> {
     const existingUser = await this.prisma.user.findUnique({
       where: {
         email: dto.email,
@@ -64,7 +87,7 @@ export class UserService {
     return this.prisma.user.findUnique({ where: { email: email } });
   }
   async getUserByTgId(tgId: number) {
-    return this.prisma.user.findUnique({ where: {telegram_user_id: tgId}});
+    return this.prisma.user.findUnique({ where: { telegram_user_id: tgId } });
   }
   async getUserById(id: number) {
     return this.prisma.user.findUnique({ where: { id: id } });

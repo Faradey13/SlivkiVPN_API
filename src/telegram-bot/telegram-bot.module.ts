@@ -5,6 +5,7 @@ import { TelegrafModule } from 'nestjs-telegraf';
 import { PrismaModule } from '../prisma/prisma.module';
 import { SubscriptionModule } from '../subscription/subscription.module';
 import { TelegramBotUtils } from './telegram-bot.utils';
+import { UserModule } from '../user/user.module';
 
 @Module({
   providers: [TelegramBotService, TelegramBotUtils],
@@ -19,6 +20,7 @@ import { TelegramBotUtils } from './telegram-bot.utils';
     }),
     PrismaModule,
     SubscriptionModule,
+    UserModule,
   ],
 })
 export class TelegramBotModule {}

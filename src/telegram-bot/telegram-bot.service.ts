@@ -17,29 +17,12 @@ export class TelegramBotService {
     this.initCommands();
   }
 
-  private escapeMarkdown(text: string): string {
-    return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
-  }
-
-  private async getRegion(ctx: Context) {
-    if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) {
-      return;
-    }
-    const callbackData = ctx.callbackQuery.data as string;
-    const regionId = parseInt(callbackData.split(':')[1]);
-    const region = await this.prisma.region.findUnique({ where: { id: regionId } });
-    if (regionId === undefined) {
-      await ctx.reply('Ошибка выбора региона, обратитесь в поддержку.');
-      return;
-    }
-    return region;
-  }
-
   private initCommands() {
     const actions = [
       { action: 'subscribe', handler: this.handleSubscribe.bind(this) },
       { action: 'help', handler: this.handleHelp.bind(this) },
-      // { action: 'extend_subscription', handler: this.handleExtendSubscription.bind(this) },
+      { action: 'extend_subscription', handler: this.handleExtendSubscription.bind(this) },
+      { action: 'payment', handler: this.handlePayment.bind(this) },
       { action: 'get_key', handler: this.handleGetKey.bind(this) },
       { action: 'smart_tv', handler: this.handleSmartTvRegion.bind(this) },
       { action: 'download_outline', handler: this.handleDownloadOutline.bind(this) },
@@ -90,7 +73,7 @@ export class TelegramBotService {
     const getKeyText = `Ваш активный ключ
   Регион - ${region.region_name} ${region.flag}
   
-  \`${this.escapeMarkdown(vpnKey.key)}\`
+  \`${this.botUtils.escapeMarkdown(vpnKey.key)}\`
   
   Чтобы использовать его, откройте приложение Outline и нажмите на плюсик в верхнем правом углу.
   
@@ -209,7 +192,7 @@ export class TelegramBotService {
 
   private async handleGetVpnKey(ctx: Context) {
     await ctx.deleteMessage();
-    const region = await this.getRegion(ctx);
+    const region = await this.botUtils.getRegion(ctx);
     const regionId = region.id;
     const userId = ctx.from.id;
     const vpnKey = await this.prisma.vpn_keys.findFirst({
@@ -220,9 +203,9 @@ export class TelegramBotService {
     });
     await ctx.reply(
       `Ваш активный ключ
-  Регион - ${this.escapeMarkdown(region.region_name)} ${region.flag}
+  Регион - ${this.botUtils.escapeMarkdown(region.region_name)} ${region.flag}
 
-\`${this.escapeMarkdown(vpnKey.key)}\`
+\`${this.botUtils.escapeMarkdown(vpnKey.key)}\`
 
   Чтобы использовать его, 
   откройте приложение Outline и нажмите на плюсик в верхнем правом углу\\.
@@ -297,7 +280,7 @@ export class TelegramBotService {
     await ctx.deleteMessage();
     const userId = ctx.from.id;
     const user = await this.prisma.user.findUnique({ where: { telegram_user_id: userId } });
-    const region = await this.getRegion(ctx);
+    const region = await this.botUtils.getRegion(ctx);
     if (!region) {
       await ctx.reply('Ошибка выбора региона');
       return;
@@ -335,5 +318,74 @@ export class TelegramBotService {
       console.error('Ошибка при отправке файла:', error);
       await ctx.reply('Произошла ошибка при отправке файла. Пожалуйста, попробуйте снова.');
     }
+  }
+
+  private async handleExtendSubscription(ctx: Context) {
+    await ctx.deleteMessage();
+    const subscription_plans = await this.prisma.subscription_plans.findMany();
+    const user = await this.prisma.user.findUnique({ where: { telegram_user_id: ctx.from.id } });
+    const subscription = await this.prisma.subscription.findUnique({ where: { user_id: user.id } });
+    const activePromoCode = await this.prisma.promo_codes.findFirst({
+      where: {
+        user_promocodes: {
+          some: {
+            user_id: user.id,
+            is_active: true,
+          },
+        },
+      },
+    });
+    const discount = activePromoCode?.discount || 0;
+    const isFreeSub = await this.prisma.free_subscription.findUnique({ where: { user_id: user.id } });
+
+    const generateKeyboard = (plans: typeof subscription_plans, addFreeOption = false) => {
+      const buttons = plans.map((plan) =>
+        Markup.button.callback(
+          `${plan.name}-${this.botUtils.applyDiscount(plan.price, discount)}₽`,
+          `payment:${plan.id}`,
+        ),
+      );
+
+      if (addFreeOption) {
+        buttons.unshift(Markup.button.callback('1 неделя - 1.00₽', `payment:${-1}`));
+      }
+
+      return Markup.inlineKeyboard(buttons);
+    };
+    const sendSubscriptionMessage = async (message: string, addFreeOption: boolean) => {
+      const keyboard = generateKeyboard(subscription_plans, addFreeOption);
+      await ctx.reply(message, keyboard);
+    };
+
+    if (subscription?.subscription_status === false) {
+      const message = 'Выберите срок продления подписки:';
+      const addFreeOption = isFreeSub?.isAvailable || false;
+      await sendSubscriptionMessage(message, addFreeOption);
+    } else {
+      const message = 'Выберите срок подписки:';
+      const addFreeOption = isFreeSub?.isAvailable || false;
+      await sendSubscriptionMessage(message, addFreeOption);
+    }
+  }
+
+  private async handlePayment(ctx: Context) {
+    if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) {
+      return;
+    }
+    const callbackData = ctx.callbackQuery.data as string;
+    const planId = parseInt(callbackData.split(':')[1]);
+    if (planId === -1) {
+      await ctx.reply(
+        `Вы выбрали продление подписки на 1 неделю за 1₽.
+      Нажмите кнопку оплатить, чтобы приступить к оплате.`,
+        Markup.inlineKeyboard([Markup.button.callback('Оплатить', `pay:${1}`)]),
+      );
+    }
+    const plan = await this.prisma.subscription_plans.findUnique({ where: { id: planId } });
+    await ctx.reply(
+      `Вы выбрали продление подписки на ${plan.name} за ${plan.price}₽.
+      Нажмите кнопку оплатить, чтобы приступить к оплате.`,
+      Markup.inlineKeyboard([Markup.button.callback('Оплатить', `pay:${plan.price}`)]), //добавить переход на оплату
+    );
   }
 }
