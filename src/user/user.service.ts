@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RoleService } from '../role/role.service';
 import { createUserDto } from './dto/createUser.dto';
@@ -15,51 +15,91 @@ export type UserWithRoles = user & {
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger();
   constructor(
     private prisma: PrismaService,
     private roleService: RoleService,
     private outline: OutlineVpnService,
     private PromoService: PromoService,
   ) {}
+
   async createUser(dto: createUserDto): Promise<UserWithRoles> {
+    this.logger.log('Starting user creation process');
+
+    if (!dto.email && !dto.telegram_user_id) {
+      this.logger.error('Validation failed: No email or telegram_user_id provided');
+      throw new Error('At least one of email or telegram_user_id must be provided');
+    }
+
+    this.logger.log(`Creating user with data: ${JSON.stringify(dto)}`);
     const user = await this.prisma.user.create({
       data: {
-        ...dto,
+        ...(dto.email && { email: dto.email }),
+        ...(dto.telegram_user_id && { telegram_user_id: dto.telegram_user_id }),
       },
     });
-    console.log(user.id);
+    this.logger.log(`User created with ID: ${user.id}`);
+
     const role: roles = await this.roleService.getRoleByValue('USER');
+    this.logger.log(`Role fetched for user: ${role.value}`);
 
-    await this.prisma.user_roles.createMany({
-      data: [
-        {
-          user_id: user.id,
-          role_id: role.id,
-        },
-      ],
+    await this.prisma.user_roles.create({
+      data: {
+        user_id: user.id,
+        role_id: role.id,
+      },
     });
-    let promoCode = this.PromoService.generatePromoCode(5, 'Join' + user.id);
-    const uniqTest = this.prisma.promo_codes.findFirst({ where: { code: promoCode } });
-    if (uniqTest) promoCode = this.PromoService.generatePromoCode(5, 'Join' + user.id);
+    this.logger.log(`Role "${role.value}" assigned to user with ID: ${user.id}`);
 
-    await this.prisma.$transaction(async (prisma) => {
-      const promoCodeRecord = await prisma.promo_codes.create({
-        data: {
-          code: promoCode,
-          type: 'referral',
-          discount: Number(process.env.REFERRAL_DISCOUNT),
-          period: 1000000,
-        },
+    let promoCode = this.PromoService.generatePromoCode({ start: 'Join', length: 5 });
+    this.logger.log(`Generated initial promo code: ${promoCode}`);
+
+    let uniqTest = await this.prisma.promo_codes.findUnique({ where: { code: promoCode } });
+    this.logger.debug(`Promo code uniqueness test result: ${uniqTest ? 'Not unique' : 'Unique'}`);
+
+    while (uniqTest) {
+      promoCode = this.PromoService.generatePromoCode({ start: 'Join', length: 5 });
+      this.logger.log(`Generated new promo code: ${promoCode}`);
+      uniqTest = await this.prisma.promo_codes.findUnique({ where: { code: promoCode } });
+      this.logger.debug(`Promo code uniqueness test result: ${uniqTest ? 'Not unique' : 'Unique'}`);
+    }
+
+    try {
+      this.logger.log('Starting database transaction for promo code and related data');
+      await this.prisma.$transaction(async (prisma) => {
+        const promoCodeRecord = await prisma.promo_codes.create({
+          data: {
+            code: promoCode,
+            type: 'referral',
+            discount: Number(process.env.REFERRAL_DISCOUNT),
+            period: 1000000,
+          },
+        });
+        this.logger.log(`Promo code "${promoCode}" created with ID: ${promoCodeRecord.id}`);
+
+        await prisma.referral_user.create({
+          data: {
+            user_id: user.id,
+            code_out_id: promoCodeRecord.id,
+          },
+        });
+        this.logger.log(`Referral user created for user ID: ${user.id}`);
+
+        await prisma.free_subscription.create({
+          data: {
+            user_id: user.id,
+            isAvailable: true,
+            date_last_free_sub: new Date(),
+          },
+        });
+        this.logger.log(`Free subscription created for user ID: ${user.id}`);
       });
+    } catch (error) {
+      this.logger.error('Transaction failed:', error);
+      throw new Error('Transaction failed. Please try again later.');
+    }
 
-      await prisma.referral_user.create({
-        data: {
-          user_id: user.id,
-          code_out_id: promoCodeRecord.id,
-        },
-      });
-    });
-
+    this.logger.log(`User creation process completed successfully for user ID: ${user.id}`);
     return {
       ...user,
       roles: [role],
@@ -80,15 +120,16 @@ export class UserService {
     return { user: newUser, isExisting: false };
   }
 
+  async getUserByTgId(telegramId: number): Promise<user> {
+    return this.prisma.user.findUnique({ where: { telegram_user_id: telegramId } });
+  }
   async getAllUsers() {
     return this.prisma.user.findMany();
   }
   async getUserByEmail(email: string) {
     return this.prisma.user.findUnique({ where: { email: email } });
   }
-  async getUserByTgId(tgId: number) {
-    return this.prisma.user.findUnique({ where: { telegram_user_id: tgId } });
-  }
+
   async getUserById(id: number) {
     return this.prisma.user.findUnique({ where: { id: id } });
   }

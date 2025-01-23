@@ -11,7 +11,7 @@ datasource db {
 
 model user {
   id  Int    @id @default(autoincrement())
-  telegram_user_id    Int? @unique
+  telegram_user_id    BigInt? @unique
   email               String? @unique
   telegram_name       String? @unique
   is_activated        Boolean @default(false)
@@ -64,18 +64,18 @@ model activation_codes {
   user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
-model subscription_plans {
+model subscription_plan {
   id                  Int    @id @default(autoincrement())
-  name                String
+  name                String @unique
+  isFree              Boolean
   price               Int
   period              Int
-  payment             payment?
+  payment             payment[]
 }
 
 model subscription {
   id                  Int    @id @default(autoincrement())
   user_id             Int @unique
-  is_free             Boolean
   subscription_status Boolean
   is_warning_sent     Boolean @default(false)
   subscription_start  DateTime
@@ -88,8 +88,8 @@ model subscription {
 model free_subscription {
   id                  Int    @id @default(autoincrement())
   user_id             Int @unique
-  isAvailable          Boolean
-  date_last_free_sub  DateTime
+  isAvailable         Boolean @default(true)
+  date_last_free_sub  DateTime ?
   created_at          DateTime @default(now())
   user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
@@ -105,21 +105,20 @@ model subscription_statictic {
 }
 
 model payment {
-  id                  Int    @id @default(autoincrement())
+  id                  Int @id @default(autoincrement())
   user_id             Int
   payment_id          String @unique
-  plan_id             Int @unique
-  promo_code_id       Int
+  plan_id             Int
+  promo_code_id       Int?
   amount              Int
-  period              Int
   status              String
   message_id          Int
   processed           Boolean?
   subscription_period Int
   created_at          DateTime @default(now())
   user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  subscription_plans  subscription_plans @relation(fields: [plan_id], references: [id], onDelete: NoAction)
-  promo_codes         promo_codes @relation(fields: [promo_code_id], references: [id], onDelete: NoAction)
+  subscription_plans  subscription_plan @relation(fields: [plan_id], references: [id], onDelete: NoAction)
+  promo_codes         promo_codes? @relation(fields: [promo_code_id], references: [id], onDelete: NoAction)
 }
 
 
@@ -141,9 +140,10 @@ model vpn_keys {
 model region {
   id                  Int    @id @default(autoincrement())
   region_name         String @unique
-  flag                String
+  region_name_eng     String @unique
   apiUrl              String
   fingerprint         String
+  flag                String
   vpn_keys            vpn_keys[]
   connection_statistic  connection_statistic[]
 }
@@ -161,15 +161,14 @@ model connection_statistic {
   user_id             Int
   region_id           Int
   traffic             Int
-  time_connection     Int
   vpn_key_id          Int
-  os_id               Int
   protocol_id         Int
   generated_at        DateTime @default(now())
   user                user @relation(fields: [user_id], references: [id], onDelete: NoAction)
   region              region @relation(fields: [region_id], references: [id], onDelete: NoAction)
   protocol            protocol @relation(fields: [protocol_id], references: [id], onDelete: NoAction)
   vpn_key             vpn_keys @relation(fields: [vpn_key_id], references: [id], onDelete: NoAction)
+  @@unique([user_id, vpn_key_id])
 }
 
 model promo_codes {
@@ -190,6 +189,8 @@ model referral_user {
   user_id             Int    @unique
   code_in_id          Int?
   code_out_id         Int
+  referral_count      Int @default(0)
+  isUsed              Boolean @default(false)
   user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
   code_in             promo_codes? @relation("CodeInRelation", fields: [code_in_id], references: [id], onDelete: Cascade)
   code_out            promo_codes @relation("CodeOutRelation", fields: [code_out_id], references: [id], onDelete: Cascade)
@@ -200,8 +201,10 @@ model user_promocodes {
   user_id             Int
   code_id             Int
   is_active           Boolean
+  isUsed              Boolean @default(false)
   apply_date          DateTime @default(now())
-  used_date           DateTime
+  used_date           DateTime?
   user                user @relation(fields: [user_id], references: [id], onDelete: Cascade)
   promo_codes         promo_codes @relation(fields: [code_id], references: [id], onDelete: Cascade)
+  @@unique([user_id, code_id])
 }

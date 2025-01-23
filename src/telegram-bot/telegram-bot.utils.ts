@@ -5,7 +5,9 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class TelegramBotUtils {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+  }
+
   async convertOutlineToJson(key: string, userId: number, outputFile = null) {
     key = key.replace('ss://', '');
 
@@ -38,11 +40,6 @@ export class TelegramBotUtils {
     return outputFile;
   }
 
-  async applyDiscount(amount: number, discountPercentage: number) {
-    const discount = (amount * discountPercentage) / 100;
-    return amount - discount;
-  }
-
   escapeMarkdown(text: string) {
     return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
   }
@@ -59,5 +56,22 @@ export class TelegramBotUtils {
       return;
     }
     return region;
+  }
+
+  chunkArray = <T>(arr: T[], chunkSize: number): T[][] =>
+    arr.reduce((resultArray: T[][], item, index) => {
+      const chunkIndex = Math.floor(index / chunkSize);
+      if (!resultArray[chunkIndex]) {
+        resultArray[chunkIndex] = []; // создаём новую строку
+      }
+      resultArray[chunkIndex].push(item);
+      return resultArray;
+    }, []);
+
+  daysUntilEnd(startDate: Date, periodInDays: number): number {
+    const now = new Date();
+    const endDate = new Date(startDate.getTime() + periodInDays * 24 * 60 * 60 * 1000);
+    const diffInMs = endDate.getTime() - now.getTime();
+    return Math.max(Math.ceil(diffInMs / (1000 * 60 * 60 * 24)), 0);
   }
 }

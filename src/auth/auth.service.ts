@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../token/token.service';
 import { UserService } from '../user/user.service';
@@ -27,10 +27,7 @@ export class AuthService {
       },
     });
   }
-  public async sendEmailActivationLink(
-    to: string,
-    link: string,
-  ): Promise<void> {
+  public async sendEmailActivationLink(to: string, link: string): Promise<void> {
     try {
       this.logger.log(`Sending email to: ${to}`);
       await this.transporter.sendMail({
@@ -52,15 +49,27 @@ export class AuthService {
   async generateActivationCode() {
     return uuid.v4();
   }
+
   async authorization(userDto: createUserDto) {
+    this.logger.log(`Authorization started for email: ${userDto.email}`);
+
     const activationCode = await this.generateActivationCode();
+    this.logger.debug(`Generated activation code: ${activationCode}`);
+
     let candidate = await this.userService.getUserByEmail(userDto.email);
     if (!candidate) {
+      this.logger.log(`User not found by email: ${userDto.email}. Creating new user...`);
       candidate = await this.userService.createUser({
-        ...userDto,
+        email: userDto.email,
       });
+      this.logger.log(`New user created with ID: ${candidate.id}`);
+    } else {
+      this.logger.log(`User found with ID: ${candidate.id}`);
     }
+
     await this.sendEmailActivationLink(userDto.email, activationCode);
+    this.logger.log(`Activation email sent to: ${userDto.email}`);
+
     await this.prisma.activation_codes.upsert({
       where: { user_id: candidate.id },
       update: { activation_code: activationCode },
@@ -69,12 +78,16 @@ export class AuthService {
         user_id: candidate.id,
       },
     });
+    this.logger.log(`Activation code upserted for user ID: ${candidate.id}`);
 
+    this.logger.log(`Authorization completed for email: ${userDto.email}`);
     return 'Authorization link sent to email';
   }
+
   async activate(activationCode: string): Promise<AuthResponseDto | string> {
+    this.logger.log(`Activation Code: ${activationCode}`);
     try {
-      const result = await this.prisma.activation_codes.findFirst({
+      const result = await this.prisma.activation_codes.findUnique({
         where: {
           activation_code: activationCode,
         },
@@ -82,18 +95,21 @@ export class AuthService {
           user: true,
         },
       });
+      this.logger.log(`result: ${result}`);
       if (!result) {
         throw new Error('Activation code not found or invalid');
       }
-
+      this.logger.log('The link is expired, please request again');
       const now = new Date().getTime();
       const codeCreatedAt = new Date(result.created_at).getTime();
 
       if (activationCode !== result.activation_code) {
+        this.logger.log('Link incorrect');
         return 'Link incorrect';
       }
 
       if (now - codeCreatedAt > Number(process.env.ACTIVATION_CODE_LIFETIME)) {
+        this.logger.log('The link is expired, please request again');
         return 'The link is expired, please request again';
       }
       await this.prisma.user.update({
@@ -139,8 +155,13 @@ export class AuthService {
     await this.sendEmailActivationLink(result.user.email, newActivationCode);
   }
 
-  async logout(refreshToken: string) {
-    return await this.tokenService.removeToken(refreshToken);
+  async logout(refreshToken: string): Promise<void> {
+    try {
+      await this.tokenService.removeToken(refreshToken);
+      return;
+    } catch {
+      throw new HttpException('Error while logging out', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async refresh(refreshToken: string) {

@@ -1,23 +1,37 @@
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import {
-  Body,
-  Controller,
-  Post,
-  Res,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Body, Controller, Post, Res, UnauthorizedException } from '@nestjs/common';
 import { TelegramAuthService } from './auth_telegram.service';
 import { TelegramAuthDto } from './dto/telegramAuth.dto';
 import { Response } from 'express';
+import { AuthResponseDto } from '../token/dto/tokenDto';
 
-@ApiTags('Авторизация через телеграм')
+@ApiTags('Telegram Auth')
 @Controller('tg_auth')
 export class TelegramAuthController {
   constructor(private readonly telegramAuthService: TelegramAuthService) {}
 
   @ApiOperation({ summary: 'редирект на эту ручку при авторизации через тг' })
-  @ApiResponse({ status: 200 })
-  @Post('authorization')
+  @ApiResponse({
+    status: 200,
+    description: 'успешный логин через Телеграм',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Почта не найдена в базе данных, требуется дополнительная информация.',
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', example: 'incomplete_registration' },
+        message: { type: 'string', example: 'Нехватает электронной почты' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Ошибка авторизации в Telegram',
+  })
+  @Post('login')
   async telegramAuth(@Body() authData: TelegramAuthDto, @Res() res: Response) {
     try {
       const userData = await this.telegramAuthService.telegram_login(authData);
@@ -41,18 +55,19 @@ export class TelegramAuthController {
   @ApiOperation({
     summary: 'ввод пользователем почты для окончания авторизации через тг',
   })
-  @ApiResponse({ status: 200 })
+  @ApiResponse({
+    status: 200,
+    description: 'успешный логин через Телеграм',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Ошибка авторизации в Telegram',
+  })
   @Post('up_email')
-  async updateEmail(
-    @Body('authData') authData: TelegramAuthDto,
-    @Body('email') email: string,
-    @Res() res: Response,
-  ) {
+  async updateEmail(@Body('authData') authData: TelegramAuthDto, @Body('email') email: string, @Res() res: Response) {
     try {
-      const userData = await this.telegramAuthService.updateEmail(
-        authData,
-        email,
-      );
+      const userData = await this.telegramAuthService.updateEmail(authData, email);
       if (userData.refreshToken)
         res.cookie('refreshToken', userData.refreshToken, {
           httpOnly: true,

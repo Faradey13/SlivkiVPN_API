@@ -25,6 +25,7 @@ export class OutlineVpnService {
   }
 
   async createKey(dto: createKeyDto) {
+    console.log(dto);
     const region = await this.prisma.region.findUnique({
       where: {
         id: dto.regionId,
@@ -39,17 +40,12 @@ export class OutlineVpnService {
           name: String(dto.userId),
         });
       } catch (error) {
-        console.error(
-          `Failed to create access key in Outline: ${error.message}`,
-        );
+        console.error(`Failed to create access key in Outline: ${error.message}`);
         throw new Error('Failed to create access key on the Outline server.');
       }
-
+      console.log(newKey, 'NEW KEY');
       try {
-        newKey.accessUrl = newKey.accessUrl.replace(
-          '?outline=1',
-          `#SLIVKI_VPN_${region.region_name}`,
-        );
+        newKey.accessUrl = newKey.accessUrl.replace('?outline=1', `#SLIVKI_VPN_${region.region_name_eng}`);
         await this.prisma.vpn_keys.create({
           data: {
             user_id: dto.userId,
@@ -92,9 +88,7 @@ export class OutlineVpnService {
       try {
         await outlineClient.deleteAccessKey(String(dto.keyId));
       } catch (error) {
-        console.error(
-          `Failed to delete access key in Outline: ${error.message}`,
-        );
+        console.error(`Failed to delete access key in Outline: ${error.message}`);
         throw new Error('Failed to delete access key on the Outline server.');
       }
 
@@ -105,9 +99,7 @@ export class OutlineVpnService {
           },
         });
       } catch (error) {
-        console.error(
-          `Failed to delete VPN key from database: ${error.message}`,
-        );
+        console.error(`Failed to delete VPN key from database: ${error.message}`);
         throw new Error('Failed to delete VPN key from the database.');
       }
     } catch (error) {
@@ -122,6 +114,9 @@ export class OutlineVpnService {
         user_id: userId,
       },
     });
+    if (!keys) {
+      return 'User does not have keys';
+    }
     try {
       for (const key of keys) {
         await this.removeKey({ keyId: key.id, regionId: key.region_id });
@@ -129,6 +124,41 @@ export class OutlineVpnService {
     } catch (error) {
       console.error(`Error in removeKey: ${error.message}`);
       throw new Error('Failed to remove VPN key. Please try again.');
+    }
+  }
+
+  async getAllKeys() {
+    try {
+      return this.prisma.vpn_keys.findMany();
+    } catch (error) {
+      console.error(`Error in getAllKeys: ${error.message}`);
+      throw new Error('Failed to get All Keys.');
+    }
+  }
+
+  async delKey(keyId: number) {
+    if (!(await this.prisma.vpn_keys.findUnique({ where: { id: keyId } }))) {
+      return new Error('this key not found');
+    }
+    try {
+      return this.prisma.vpn_keys.delete({ where: { id: keyId } });
+    } catch (error) {
+      console.error(`Error deleting key: ${error.message}`);
+      throw new Error('Failed deleting VPN key. Please try again.');
+    }
+  }
+
+  async getMetrics(regionId: number) {
+    try {
+      const outlineClient = await this.createOutlineClient(regionId);
+      const usage = await outlineClient.getDataUsage();
+      const status = await outlineClient.getShareMetrics();
+      await outlineClient.setShareMetrics(false);
+
+      return { metrics: usage, status: status };
+    } catch (error) {
+      console.error(`Error in getMetrics: ${error.message}`);
+      throw new Error('Failed to get metrics. Please try again.');
     }
   }
 }

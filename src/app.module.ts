@@ -16,9 +16,11 @@ import { PromoModule } from './promo/promo.module';
 import { AdminModule } from './admin/admin.module';
 import { StatisticModule } from './statistic/statistic.module';
 import { TaskModule } from './task/task.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     UserModule,
     PrismaModule,
     RoleModule,

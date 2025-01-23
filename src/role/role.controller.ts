@@ -9,8 +9,8 @@ import { RolesGuard } from '../utils/guards/role.guard';
 export class RoleController {
   constructor(private roleService: RoleService) {}
 
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
+  // @Roles('ADMIN')
+  // @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Создать роль' })
   @ApiResponse({ status: 200 })
   @Post('/new_role')
@@ -18,10 +18,9 @@ export class RoleController {
     return this.roleService.createRole(dto);
   }
 
-  @Roles('ADMIN')
-  @UseGuards(RolesGuard)
+  // @Roles('ADMIN')
+  // @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Выдать роль' })
-
   @ApiResponse({ status: 200 })
   @Get('/:value')
   getByValue(@Param('value') value: string) {

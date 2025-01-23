@@ -63,7 +63,6 @@ export class createKeyDto {
     example: 1,
   })
   regionId: number;
-
 }
 
 export class removeKeyDto {
@@ -76,5 +75,13 @@ export class removeKeyDto {
     description: 'Уникальный идентификатор региона',
     example: 1,
   })
+  regionId: number;
+}
+
+export class protocolDto {
+  name: string;
+}
+
+export class metricDto {
   regionId: number;
 }

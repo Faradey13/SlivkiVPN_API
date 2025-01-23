@@ -11,9 +11,4 @@ export class addSubscriptionDto {
     example: 365,
   })
   period: number;
-  @ApiProperty({
-    description: 'бесплатная ли подписка или нет',
-    example: true,
-  })
-  isFree: boolean;
 }
