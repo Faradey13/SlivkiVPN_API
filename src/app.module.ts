@@ -17,6 +17,8 @@ import { AdminModule } from './admin/admin.module';
 import { StatisticModule } from './statistic/statistic.module';
 import { TaskModule } from './task/task.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-store';
 
 @Module({
   imports: [
@@ -40,6 +42,15 @@ import { ScheduleModule } from '@nestjs/schedule';
     AdminModule,
     StatisticModule,
     TaskModule,
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => ({
+        store: redisStore,
+        host: 'localhost',
+        port: 6379,
+        ttl: 60 * 60,
+      }),
+    }),
   ],
   controllers: [],
   providers: [],

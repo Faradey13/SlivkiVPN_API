@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   setActivePromoDto,
   createPromoDto,
@@ -10,12 +10,15 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { promo_codes } from '@prisma/client';
 import { ReferralService } from '../referral/referral.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class PromoService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly referral: ReferralService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
   generatePromoCode(dto: generatePromoCodeDto) {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -113,38 +116,27 @@ export class PromoService {
         return { success: false, message: 'Такого промокода не существует' };
       }
       if (codeData.type === 'referral') {
-        return await this.referral.applyReferralCode(dto.userId, dto.code);
+        return await this.referral.applyReferralCode(dto.userId, codeData);
       }
-      return await this.applyPromotionCode(dto.userId, dto.code);
+      return await this.applyPromotionCode(dto.userId, codeData);
     } catch (error) {
       console.error('Ошибка при применении промокода:', error);
       return { success: false, message: 'Не удалось применить реферальный код' };
     }
   }
 
-  async applyPromotionCode(userId: number, code: string) {
+  async applyPromotionCode(userId: number, code: promo_codes) {
     try {
-      const codeData = await this.prisma.promo_codes.findUnique({
-        where: { code },
-      });
-
-      if (!codeData) {
-        return { success: false, message: 'Такого промокода не существует' };
-      }
-
-      if (codeData.type === 'referral') {
-        return { success: false, message: 'Этот промокод надо активировать в разделе Реферальная cистема' };
-      }
-      const period = codeData.period * 24 * 60 * 60 * 1000;
+      const period = code.period * 24 * 60 * 60 * 1000;
       const now = new Date();
-      if (now.getTime() - codeData.created_at.getTime() >= period) {
+      if (now.getTime() - code.created_at.getTime() >= period) {
         return { success: false, message: 'Срок действия промокода закончился' };
       }
       const isActive = await this.prisma.user_promocodes.findFirst({ where: { user_id: userId, is_active: true } });
       await this.prisma.user_promocodes.create({
         data: {
           user_id: userId,
-          code_id: codeData.id,
+          code_id: code.id,
           apply_date: new Date(),
           is_active: !isActive,
         },
@@ -153,6 +145,36 @@ export class PromoService {
     } catch (error) {
       console.error('Ошибка при применении промокода:', error);
       return { success: false, message: 'Не удалось применить реферальный код' };
+    }
+  }
+
+  async getPromoCodeById(codeId: number): Promise<promo_codes> {
+    try {
+      const cacheKey = `promo_code_id_${codeId}`;
+      const cachePromoCode = (await this.cacheManager.get(cacheKey)) as promo_codes | null;
+      if (cachePromoCode) return cachePromoCode;
+      const promoCode = await this.prisma.promo_codes.findUnique({ where: { id: codeId } });
+      if (promoCode) {
+        await this.cacheManager.set(cacheKey, promoCode);
+      }
+      return promoCode;
+    } catch (error) {
+      throw new Error(`${error} error DB, code not found`);
+    }
+  }
+
+  async getPromoCodeByCode(code: string): Promise<promo_codes> {
+    try {
+      const cacheKey = `promo_code_${code}`;
+      const cachePromoCode = (await this.cacheManager.get(cacheKey)) as promo_codes | null;
+      if (cachePromoCode) return cachePromoCode;
+      const promoCode = await this.prisma.promo_codes.findUnique({ where: { code: code } });
+      if (promoCode) {
+        await this.cacheManager.set(cacheKey, promoCode);
+      }
+      return promoCode;
+    } catch (error) {
+      throw new Error(`${error} error DB, code not found`);
     }
   }
 }

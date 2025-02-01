@@ -1,8 +1,7 @@
-import { Controller, Post, Body, Delete, BadRequestException, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Delete, BadRequestException, Patch, HttpException } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PromoService } from './promo.service';
-import { createPromoDto, delPromoDto, editPromoDto, setActivePromoDto } from './dto/promo.dto';
-
+import { createPromoDto, delPromoDto, editPromoDto, setActivePromoDto, UserCodePromoDto } from './dto/promo.dto';
 
 @Controller('promo_codes')
 export class PromoController {
@@ -96,5 +95,28 @@ export class PromoController {
   @Patch('set-active')
   async setActive(@Body() dto: setActivePromoDto) {
     await this.promoCodesService.setActivePromoCode(dto);
+  }
+
+  @ApiOperation({ summary: 'Применение промо кода' })
+  @ApiResponse({
+    status: 200,
+    description: 'промо код успешно применен.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Неверный промо код или ошибка при обновлении данных.',
+  })
+  @Post('apply_code')
+  async applyReferralCode(@Body() applyCodeDto: UserCodePromoDto) {
+    const { userId, code } = applyCodeDto;
+
+    try {
+      return await this.promoCodesService.defineAndApplyCode({ code: code, userId: userId });
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException({ message: 'Не удалось применить промо код', code: 'UNKNOWN_ERROR' });
+    }
   }
 }

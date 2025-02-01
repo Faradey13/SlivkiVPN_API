@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RoleService } from '../role/role.service';
 import { createUserDto } from './dto/createUser.dto';
@@ -8,6 +8,8 @@ import { banUserDto } from './dto/banUserDto';
 import { OutlineVpnService } from '../outline-vpn/outline-vpn.service';
 import { PromoService } from '../promo/promo.service';
 import * as process from 'node:process';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 export type UserWithRoles = user & {
   roles: roles[];
@@ -21,6 +23,7 @@ export class UserService {
     private roleService: RoleService,
     private outline: OutlineVpnService,
     private PromoService: PromoService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async createUser(dto: createUserDto): Promise<UserWithRoles> {
@@ -121,7 +124,26 @@ export class UserService {
   }
 
   async getUserByTgId(telegramId: number): Promise<user> {
-    return this.prisma.user.findUnique({ where: { telegram_user_id: telegramId } });
+    const cacheKey = `user_tg_${telegramId}`;
+    const cachedUser = (await this.cacheManager.get(cacheKey)) as user | null;
+    if (cachedUser) {
+      return cachedUser;
+    }
+    const user = await this.prisma.user.findUnique({
+      where: { telegram_user_id: telegramId },
+    });
+    if (user) {
+      await this.cacheManager.set(
+        cacheKey,
+        {
+          ...user,
+          telegram_user_id: user.telegram_user_id.toString(),
+        },
+        3600 * 1000,
+      );
+    }
+
+    return user;
   }
   async getAllUsers() {
     return this.prisma.user.findMany();

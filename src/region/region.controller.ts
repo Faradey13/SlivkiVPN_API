@@ -28,11 +28,11 @@ export class RegionController {
     return this.regionService.createRegion(dto);
   }
 
-  @Delete('/del/:name')
+  @Delete('/del/:regionId')
   @ApiParam({
-    name: 'name',
-    description: 'Имя гериона для удаления',
-    type: String,
+    name: 'regionId',
+    description: 'id региона',
+    type: Number,
   })
   @ApiResponse({
     status: 200,
@@ -43,9 +43,9 @@ export class RegionController {
     status: 404,
     description: 'Region not found',
   })
-  async delRegion(@Param('name') name: string): Promise<string> {
-    await this.regionService.delRegion(name);
-    return `Region '${name}' successfully deleted`;
+  async delRegion(@Param('name') regionId: number): Promise<string> {
+    await this.regionService.delRegion(regionId);
+    return `Region '${regionId}' successfully deleted`;
   }
 
   @Get('all')

@@ -10,7 +10,7 @@ import { HttpModule } from '@nestjs/axios';
 import { YandexAuthController } from './auth_yandex.controller';
 import { YandexAuthService } from './auth_yandex.service';
 import { GoogleAuthController } from './auth_google.controller';
-import { AuthGoogleService } from './auth_google.sevice';
+import { AuthGoogleService } from './auth_google.service';
 
 @Module({
   providers: [

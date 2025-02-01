@@ -5,10 +5,22 @@ import { createRoleDto } from './dto/createRoleDto';
 @Injectable()
 export class RoleService {
   constructor(private prisma: PrismaService) {}
+
   async createRole(dto: createRoleDto) {
-    return this.prisma.roles.create({ data: dto });
+    try {
+      return await this.prisma.roles.create({ data: dto });
+    } catch (error) {
+      console.error('Ошибка при создании роли:', error);
+      throw new Error('error creating role');
+    }
   }
+
   async getRoleByValue(value: string) {
-    return this.prisma.roles.findFirst({ where: { value } });
+    try {
+      return await this.prisma.roles.findFirst({ where: { value } });
+    } catch (error) {
+      console.error('Ошибка при получении роли по значению:', error);
+      throw new Error('role not found');
+    }
   }
 }

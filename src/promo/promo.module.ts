@@ -7,7 +7,7 @@ import { ReferralModule } from '../referral/referral.module';
 @Module({
   providers: [PromoService],
   controllers: [PromoController],
-  exports: [PromoService],
   imports: [PrismaModule, forwardRef(() => ReferralModule)],
+  exports: [PromoService],
 })
 export class PromoModule {}

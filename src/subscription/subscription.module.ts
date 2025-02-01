@@ -9,6 +9,6 @@ import { SubscriptionPlanService } from './subscription-plan.service';
   providers: [SubscriptionService, SubscriptionPlanService],
   controllers: [SubscriptionController],
   imports: [PrismaModule, OutlineVpnModule],
-  exports: [SubscriptionService],
+  exports: [SubscriptionService, SubscriptionPlanService],
 })
 export class SubscriptionModule {}

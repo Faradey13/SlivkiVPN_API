@@ -3,29 +3,26 @@ import { OutlineVPN } from 'outlinevpn-api';
 import { PrismaService } from '../prisma/prisma.service';
 import * as process from 'node:process';
 import { createKeyDto, removeKeyDto } from './dto/outline.dto';
+import { RegionService } from '../region/region.service';
 
 @Injectable()
 export class OutlineVpnService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly region: RegionService,
+  ) {}
 
   private async createOutlineClient(regionId: number) {
-    const region = await this.prisma.region.findUnique({
-      where: {
-        id: regionId,
-      },
-    });
+    const region = await this.region.getRegionById(regionId);
+
     return new OutlineVPN({
       apiUrl: region.apiUrl,
       fingerprint: region.fingerprint,
     });
   }
 
-  private gbToBites(gb: number) {
-    return gb * 1024 * 1024 * 1024;
-  }
 
   async createKey(dto: createKeyDto) {
-    console.log(dto);
     const region = await this.prisma.region.findUnique({
       where: {
         id: dto.regionId,
@@ -43,7 +40,6 @@ export class OutlineVpnService {
         console.error(`Failed to create access key in Outline: ${error.message}`);
         throw new Error('Failed to create access key on the Outline server.');
       }
-      console.log(newKey, 'NEW KEY');
       try {
         newKey.accessUrl = newKey.accessUrl.replace('?outline=1', `#SLIVKI_VPN_${region.region_name_eng}`);
         await this.prisma.vpn_keys.create({
@@ -153,7 +149,7 @@ export class OutlineVpnService {
       const outlineClient = await this.createOutlineClient(regionId);
       const usage = await outlineClient.getDataUsage();
       const status = await outlineClient.getShareMetrics();
-      await outlineClient.setShareMetrics(false);
+      await outlineClient.setShareMetrics(true);
 
       return { metrics: usage, status: status };
     } catch (error) {

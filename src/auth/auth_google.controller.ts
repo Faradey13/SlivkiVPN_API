@@ -1,5 +1,5 @@
 import { Controller, Post, Body, UnauthorizedException, Res } from '@nestjs/common';
-import { AuthGoogleService } from './auth_google.sevice';
+import { AuthGoogleService } from './auth_google.service';
 import { Response } from 'express';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthResponseDto } from '../token/dto/tokenDto';

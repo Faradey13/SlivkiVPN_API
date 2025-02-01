@@ -41,10 +41,11 @@ export class PromotionHandler {
     const referralUser = await this.prisma.referral_user.findUnique({
       where: { user_id: user.id },
     });
-    const myReferral = await this.prisma.promo_codes.findUnique({
-      where: { id: referralUser.code_in_id },
-    });
+
     if (referralUser.code_in_id && !referralUser.isUsed) {
+      const myReferral = await this.prisma.promo_codes.findUnique({
+        where: { id: referralUser.code_in_id },
+      });
       await ctx.editMessageText(
         `Вы добавили реферальный код:\n\n${myReferral.code}\n\nВы можете оформить подписку со скидкой ${myReferral.discount}%
         
@@ -59,25 +60,23 @@ export class PromotionHandler {
       await ctx.editMessageText('Вы еще не добавляли промокоды', keyboard);
     }
     const userPromoCodesNotActive = await this.prisma.promo_codes.findMany({
-      where: { user_promocodes: { some: { user_id: user.id, is_active: false } } },
+      where: { user_promocodes: { some: { user_id: user.id, is_active: false, isUsed: false } } },
     });
     if (!userPromoCodes) {
       await ctx.editMessageText('Вы еще не добавляли промокоды', keyboard);
     }
 
     const userPromoActive = await this.prisma.user_promocodes.findMany({
-      where: { user_id: user.id, is_active: true },
+      where: { user_id: user.id, is_active: true, isUsed: false },
     });
-    console.log('длина массива', userPromoActive.length);
     if (userPromoActive.length !== 1 || !userPromoActive) {
-      console.log('отработало');
       await this.prisma.user_promocodes.updateMany({ where: { user_id: user.id }, data: { is_active: false } });
       await ctx.editMessageText('Активный промокод не установлен, выберете его', keyboard);
     }
 
     if (userPromoActive.length === 1) {
       const currentActiveCode = await this.prisma.promo_codes.findFirst({
-        where: { user_promocodes: { some: { user_id: user.id, is_active: true } } },
+        where: { user_promocodes: { some: { user_id: user.id, is_active: true, isUsed: false } } },
       });
       const daysUntilEnd = this.botUtils.daysUntilEnd(currentActiveCode.created_at, currentActiveCode.period);
       await ctx.editMessageText(

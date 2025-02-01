@@ -4,11 +4,10 @@ import { ReferralController } from './referral.controller';
 import { PromoModule } from '../promo/promo.module';
 import { PrismaModule } from '../prisma/prisma.module';
 
-
 @Module({
   providers: [ReferralService],
   controllers: [ReferralController],
-  imports: [forwardRef(() => PromoModule), PrismaModule],
+  imports: [PrismaModule, forwardRef(() => PromoModule)],
   exports: [ReferralService],
 })
 export class ReferralModule {}

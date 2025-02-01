@@ -6,6 +6,7 @@ import { CurrencyEnum, PaymentCreateRequest, PaymentMethodsEnum, YookassaService
 import { SubscriptionService } from '../subscription/subscription.service';
 import { currentPromoDto, paymentDataDto, PaymentResponseDto, preparingPaymentDataDto } from './dto/payment.dto';
 import * as process from 'node:process';
+import { SubscriptionPlanService } from '../subscription/subscription-plan.service';
 
 @Injectable()
 export class PaymentService {
@@ -16,6 +17,7 @@ export class PaymentService {
     private readonly PromoService: PromoService,
     private readonly yookassaService: YookassaService,
     private readonly subscriptionService: SubscriptionService,
+    private readonly subscriptionPlans: SubscriptionPlanService,
   ) {}
 
   applyDiscount(amount: number, discountPercentage: number) {
@@ -61,7 +63,7 @@ export class PaymentService {
     this.logger.log('Начало обработки платежа', dto);
 
     try {
-      const plan = await this.prisma.subscription_plan.findUnique({ where: { id: Number(dto.metadata.plan_id) } });
+      const plan = await this.subscriptionPlans.getSubscriptionPlanById(Number(dto.metadata.plan_id));
       this.logger.log('Получен тарифный план:', plan);
 
       if (!plan) {
@@ -81,11 +83,8 @@ export class PaymentService {
       }
 
       if (promoId !== null) {
-        console.log(promoId, '3&&&&&&&&&&&&&&&&&&&&&&&');
         const referral_user = await this.prisma.referral_user.findUnique({ where: { id: userId } });
-        const promoCode = await this.prisma.promo_codes.findUnique({
-          where: { id: promoId },
-        });
+        const promoCode = await this.ReferralService.getUsersRefCode(userId);
 
         if (!promoCode) {
           throw new Error(`Promo code with ID ${promoId} not found`);
@@ -100,7 +99,7 @@ export class PaymentService {
           });
           this.logger.log('Реферальный промокод отмечен как использованный');
 
-          const invitingUser = await this.prisma.referral_user.findFirst({ where: { code_out_id: promoCode.id } });
+          const invitingUser = await this.ReferralService.getUserReferral(userId);
           this.logger.log('Приглашающий пользователь:', invitingUser);
 
           await this.subscriptionService.addSubscription({
@@ -114,19 +113,6 @@ export class PaymentService {
             data: { referral_count: { increment: 1 } },
           });
           this.logger.log('Обновлен счётчик рефералов');
-        }
-
-        if (plan.isFree) {
-          this.logger.log('Обновление бесплатной подписки для пользователя');
-
-          await this.prisma.free_subscription.update({
-            where: { user_id: userId },
-            data: {
-              isAvailable: false,
-              date_last_free_sub: new Date(),
-            },
-          });
-          this.logger.log('Бесплатная подписка обновлена');
         }
         if (promoCode.type !== 'referral') {
           const userPromoCode = await this.prisma.user_promocodes.findUnique({
@@ -148,6 +134,18 @@ export class PaymentService {
 
           this.logger.log('Обновлены данные промокода для пользователя');
         }
+      }
+      if (plan.isFree) {
+        this.logger.log('Обновление бесплатной подписки для пользователя');
+
+        await this.prisma.free_subscription.update({
+          where: { user_id: userId },
+          data: {
+            isAvailable: false,
+            date_last_free_sub: new Date(),
+          },
+        });
+        this.logger.log('Бесплатная подписка обновлена');
       }
 
       await this.prisma.payment.create({
@@ -190,7 +188,7 @@ export class PaymentService {
   }
 
   async getCurrentPromoCode(userId: number): Promise<currentPromoDto> {
-    const referral = await this.prisma.referral_user.findUnique({ where: { user_id: userId } });
+    const referral = await this.ReferralService.getUserReferral(userId);
     if (!referral.isUsed && referral.code_in_id) {
       const refPromo = await this.prisma.promo_codes.findUnique({ where: { id: referral.code_in_id } });
       const findRefUser = await this.prisma.referral_user.findFirst({ where: { code_out_id: refPromo.id } });
@@ -222,12 +220,12 @@ export class PaymentService {
     if (!promoCode) {
       return { codeId: undefined, discount: 0 };
     }
-    const currentCode = await this.prisma.promo_codes.findUnique({ where: { id: promoCode.code_id } });
+    const currentCode = await this.PromoService.getPromoCodeById(promoCode.code_id);
     return { codeId: currentCode.id, discount: currentCode.discount };
   }
 
   async preparingPaymentData(dto: preparingPaymentDataDto): Promise<paymentDataDto> {
-    const plan = await this.prisma.subscription_plan.findUnique({ where: { id: dto.planId } });
+    const plan = await this.subscriptionPlans.getSubscriptionPlanById(dto.planId);
     const { codeId, discount } = await this.getCurrentPromoCode(dto.userId);
     const amount = this.applyDiscount(plan.price, discount);
     return {

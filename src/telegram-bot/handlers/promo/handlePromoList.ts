@@ -20,7 +20,7 @@ export class PromoListHandler {
   async handlePromoList(@Ctx() ctx: Context) {
     const user = await this.userService.getUserByTgId(ctx.from.id);
     const userPromoCodesNotActive = await this.prisma.promo_codes.findMany({
-      where: { user_promocodes: { some: { user_id: user.id, is_active: false } } },
+      where: { user_promocodes: { some: { user_id: user.id, is_active: false, isUsed: false } } },
     });
     const keyboard1 = Markup.inlineKeyboard([
       [Markup.button.callback('⬅️ Назад', 'promotion')],

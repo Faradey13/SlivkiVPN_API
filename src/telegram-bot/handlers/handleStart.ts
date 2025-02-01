@@ -44,6 +44,7 @@ export class StartHandler {
       [Markup.button.callback('🎫 Промокоды', 'promotion')],
       [Markup.button.callback('🎁 Пригласить друга', 'referral')],
       [Markup.button.callback('❓ Помощь', 'help')],
+      [Markup.button.callback('❓ test', 'warning_test')],
     ]);
 
     try {

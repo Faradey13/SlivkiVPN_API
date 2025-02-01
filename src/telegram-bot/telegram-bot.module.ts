@@ -11,7 +11,6 @@ import { OutlineVpnModule } from '../outline-vpn/outline-vpn.module';
 import { ReferralModule } from '../referral/referral.module';
 import { PaymentHandler } from './handlers/payment/handlePayment';
 import { PaymentTestHandler } from './handlers/payment/handleTestPay';
-import { EnterRefCodeHandler } from './handlers/referral/handleEnterRefCode';
 import { GetRefCodeHandler } from './handlers/referral/handleGetRefCode';
 import { ReferralHandlers } from './handlers/referral/handleReferral';
 import { ExtendSubscriptionHandler } from './handlers/subscription/handleExtendSubscription';
@@ -31,13 +30,13 @@ import { PromoListHandler } from './handlers/promo/handlePromoList';
 import { PromotionHandler } from './handlers/promo/handlePromotion';
 import { SetActiveHandler } from './handlers/promo/handleSetaActive';
 import { EnterPromoCodeHandler } from './handlers/promo/handleEnterPromoCode';
+import { StatisticModule } from '../statistic/statistic.module';
 
 @Module({
   providers: [
     TelegramBotUtils,
     PaymentHandler,
     PaymentTestHandler,
-    EnterRefCodeHandler,
     GetRefCodeHandler,
     ReferralHandlers,
     ExtendSubscriptionHandler,
@@ -73,6 +72,7 @@ import { EnterPromoCodeHandler } from './handlers/promo/handleEnterPromoCode';
     OutlineVpnModule,
     ReferralModule,
     PromoModule,
+    StatisticModule,
   ],
 })
 export class TelegramBotModule {}

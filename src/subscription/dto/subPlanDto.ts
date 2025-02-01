@@ -9,6 +9,8 @@ export class SubscriptionPlanDto {
   price: number;
   @ApiProperty({ example: 30, description: 'количество дней по тарифу' })
   period: number;
+  // @ApiProperty({ example: 1, description: 'id плана' })
+  // planId: number;
 }
 
 export class SubscriptionPlanDtoResponse extends SubscriptionPlanDto {
