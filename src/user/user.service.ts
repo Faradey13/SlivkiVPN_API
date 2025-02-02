@@ -133,33 +133,53 @@ export class UserService {
       where: { telegram_user_id: telegramId },
     });
     if (user) {
-      await this.cacheManager.set(
-        cacheKey,
-        {
-          ...user,
-          telegram_user_id: user.telegram_user_id.toString(),
-        },
-        3600 * 1000,
-      );
+      await this.cacheManager.set(cacheKey, {
+        ...user,
+        telegram_user_id: user.telegram_user_id.toString(),
+      });
     }
 
     return user;
   }
+
   async getAllUsers() {
     return this.prisma.user.findMany();
   }
-  async getUserByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email: email } });
+  async getUserByEmail(email: string): Promise<user | null> {
+    const cacheKey = `user_email_${email}`;
+    const cachedUser = (await this.cacheManager.get(cacheKey)) as user | null;
+    if (cachedUser) {
+      return cachedUser;
+    }
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (user) {
+      await this.cacheManager.set(cacheKey, user);
+    }
+    return user;
   }
 
-  async getUserById(id: number) {
-    return this.prisma.user.findUnique({ where: { id: id } });
+  async getUserById(id: number): Promise<user | null> {
+    const cacheKey = `user_id_${id}`;
+    const cachedUser = (await this.cacheManager.get(cacheKey)) as user | null;
+    if (cachedUser) {
+      return cachedUser;
+    }
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (user) {
+      await this.cacheManager.set(cacheKey, user);
+    }
+    return user;
   }
-  async getUserWithRoles(userId: number) {
+
+  async getUserWithRoles(userId: number): Promise<any> {
+    const cacheKey = `user_roles_${userId}`;
+    const cachedUserRoles = (await this.cacheManager.get(cacheKey)) as any | null;
+    if (cachedUserRoles) {
+      return cachedUserRoles;
+    }
+
     const userWithRoles = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
+      where: { id: userId },
       include: {
         user_roles: {
           include: {
@@ -174,12 +194,12 @@ export class UserService {
     }
 
     const transformedRoles = userWithRoles.user_roles.map((role) => role.roles);
+    const result = { ...userWithRoles, roles: transformedRoles };
 
-    return {
-      ...userWithRoles,
-      roles: transformedRoles,
-    };
+    await this.cacheManager.set(cacheKey, result);
+    return result;
   }
+
   async addRoleToUser(dto: addRoleToUserDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: dto.userID },

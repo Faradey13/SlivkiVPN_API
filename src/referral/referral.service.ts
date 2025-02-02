@@ -4,13 +4,15 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { promo_codes, referral_user } from '@prisma/client';
 import { PromoService } from '../promo/promo.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class ReferralService {
   constructor(
     @Inject(forwardRef(() => PromoService))
-    private readonly promo: PromoService,
     private readonly prisma: PrismaService,
+    private readonly userService: UserService,
+    private readonly referralService: ReferralService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
   async getUsersRefCode(userId: number): Promise<promo_codes> {
@@ -54,9 +56,7 @@ export class ReferralService {
 
   async applyReferralCode(userId: number, code: promo_codes) {
     try {
-      const userReferral = await this.prisma.referral_user.findUnique({
-        where: { user_id: userId },
-      });
+      const userReferral = await this.referralService.getUserReferral(userId);
 
       if (!userReferral) {
         return { success: false, message: 'Ваш профиль не участвует в реферальной программе' };
@@ -74,9 +74,7 @@ export class ReferralService {
         return { success: false, message: 'Промокод принадлежит заблокированному пользователю' };
       }
 
-      const invitingUser = await this.prisma.user.findUnique({
-        where: { id: refInvitingUser.user_id },
-      });
+      const invitingUser = await this.userService.getUserById(refInvitingUser.user_id);
 
       if (!invitingUser || invitingUser.is_banned) {
         return { success: false, message: 'Промокод принадлежит заблокированному пользователю' };

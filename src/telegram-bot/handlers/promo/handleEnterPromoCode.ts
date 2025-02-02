@@ -11,7 +11,6 @@ export class EnterPromoCodeHandler {
   constructor(
     @InjectBot() private readonly bot: Telegraf<Context>,
     private readonly userService: UserService,
-    private readonly prisma: PrismaService,
     private readonly promo: PromoService,
   ) {}
 

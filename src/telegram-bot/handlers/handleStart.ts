@@ -11,7 +11,6 @@ export class StartHandler {
   constructor(
     private readonly userService: UserService,
     private readonly prisma: PrismaService,
-    private readonly outline: OutlineVpnService,
   ) {}
 
   @Start()
@@ -24,7 +23,6 @@ export class StartHandler {
     if (!user) {
       const newUser = await this.userService.createUser({ telegram_user_id: userId });
       await this.prisma.user.update({ where: { id: newUser.id }, data: { is_activated: true, telegram_name: nameTg } });
-      await this.outline.createSetKeys(newUser.id);
     }
 
     const startText = `

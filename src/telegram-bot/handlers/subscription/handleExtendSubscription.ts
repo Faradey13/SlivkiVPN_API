@@ -5,6 +5,7 @@ import { UserService } from '../../../user/user.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { SubscriptionService } from '../../../subscription/subscription.service';
 import { PaymentService } from '../../../payment/payment.service';
+import { SubscriptionPlanService } from '../../../subscription/subscription-plan.service';
 
 @Injectable()
 @Update()
@@ -12,8 +13,9 @@ export class ExtendSubscriptionHandler {
   constructor(
     private readonly userService: UserService,
     private readonly prisma: PrismaService,
-    private readonly subscriptionService: SubscriptionService,
+    private readonly subscriptionPlan: SubscriptionPlanService,
     private readonly paymentService: PaymentService,
+    private readonly subscriptionService: SubscriptionService,
   ) {}
   @Action('extend_subscription')
   async handleExtendSubscription(@Ctx() ctx: Context) {
@@ -21,12 +23,10 @@ export class ExtendSubscriptionHandler {
     const isFree = await this.prisma.free_subscription.findUnique({
       where: { user_id: user.id },
     });
-    const subscriptionPlansFree = await this.subscriptionService.getAvailablePlans(isFree.isAvailable);
-    const subscriptionPlansNoFree = await this.subscriptionService.getAvailablePlans(!isFree.isAvailable);
-    const subscriptionPlans = [...subscriptionPlansFree, ...subscriptionPlansNoFree];
-    const subscription = await this.prisma.subscription.findUnique({
-      where: { user_id: user.id },
-    });
+    const { regularPlans, freePlans } = await this.subscriptionPlan.getAvailablePlans();
+    const availableFree = isFree.isAvailable ? freePlans : [];
+    const subscriptionPlans = [...regularPlans, ...availableFree];
+    const subscription = await this.subscriptionService.getUserSubscription(user.id);
 
     const discount = await this.paymentService.getCurrentPromoCode(user.id);
     const buttons = subscriptionPlans.map((plan) => [

@@ -109,9 +109,8 @@ export class PromoService {
 
   async defineAndApplyCode(dto: UserCodePromoDto) {
     try {
-      const codeData = await this.prisma.promo_codes.findUnique({
-        where: { code: dto.code },
-      });
+      const codeData = await this.getPromoCodeByCode(dto.code);
+
       if (!codeData) {
         return { success: false, message: 'Такого промокода не существует' };
       }

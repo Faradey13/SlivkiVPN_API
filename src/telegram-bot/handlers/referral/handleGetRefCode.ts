@@ -2,24 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
 import { UserService } from '../../../user/user.service';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { ReferralService } from '../../../referral/referral.service';
+import { PromoService } from '../../../promo/promo.service';
 
 @Injectable()
 @Update()
 export class GetRefCodeHandler {
   constructor(
     private readonly userService: UserService,
-    private readonly prisma: PrismaService,
+    private readonly referralService: ReferralService,
+    private readonly promo: PromoService,
   ) {}
   @Action('get_ref_code')
   async handleGetRefCode(@Ctx() ctx: Context) {
     const user = await this.userService.getUserByTgId(ctx.from.id);
-    const referralUser = await this.prisma.referral_user.findUnique({
-      where: { user_id: user.id },
-    });
-    const myReferralCode = await this.prisma.promo_codes.findUnique({
-      where: { id: referralUser.code_out_id },
-    });
+    const referralUser = await this.referralService.getUserReferral(user.id);
+    const myReferralCode = await this.promo.getPromoCodeById(referralUser.code_out_id);
 
     const text = `Ваш реферальный код: 
 <code><a href="tg://copy?text=${myReferralCode.code}">${myReferralCode.code}</a></code>

@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { UserService } from '../../../user/user.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PaymentService } from '../../../payment/payment.service';
+import { SubscriptionPlanService } from '../../../subscription/subscription-plan.service';
 
 @Injectable()
 @Update()
@@ -13,6 +14,7 @@ export class PaymentTestHandler {
     private readonly userService: UserService,
     private readonly prisma: PrismaService,
     private readonly paymentService: PaymentService,
+    private readonly subscriptionPlanService: SubscriptionPlanService,
   ) {}
   @Action(/^test_pay:(\d+)$/)
   async handleTestPay(@Ctx() ctx: Context) {
@@ -22,7 +24,7 @@ export class PaymentTestHandler {
     const callbackData = ctx.callbackQuery.data as string;
     const planId = parseInt(callbackData.split(':')[1]);
     const user = await this.userService.getUserByTgId(ctx.from.id);
-    const plan = await this.prisma.subscription_plan.findUnique({ where: { id: planId } });
+    const plan = await this.subscriptionPlanService.getSubscriptionPlanById(planId);
     const { discount, codeId, message } = await this.paymentService.getCurrentPromoCode(user.id);
     const amount = this.paymentService.applyDiscount(plan.price, plan.isFree ? 0 : discount);
     const paYid = uuidv4();

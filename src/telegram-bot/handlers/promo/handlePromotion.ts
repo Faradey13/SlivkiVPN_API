@@ -5,6 +5,7 @@ import { UserService } from '../../../user/user.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PromoService } from '../../../promo/promo.service';
 import { TelegramBotUtils } from '../../telegram-bot.utils';
+import { ReferralService } from '../../../referral/referral.service';
 
 
 @Injectable()
@@ -14,8 +15,9 @@ export class PromotionHandler {
     @InjectBot() private readonly bot: Telegraf<Context>,
     private readonly userService: UserService,
     private readonly prisma: PrismaService,
-    private readonly promo: PromoService,
+    private readonly referralService: ReferralService,
     private readonly botUtils: TelegramBotUtils,
+    private readonly promo: PromoService,
   ) {}
 
   @Action('promotion')
@@ -38,14 +40,10 @@ export class PromotionHandler {
       [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
     ]);
     const user = await this.userService.getUserByTgId(ctx.from.id);
-    const referralUser = await this.prisma.referral_user.findUnique({
-      where: { user_id: user.id },
-    });
+    const referralUser = await this.referralService.getUserReferral(user.id);
 
     if (referralUser.code_in_id && !referralUser.isUsed) {
-      const myReferral = await this.prisma.promo_codes.findUnique({
-        where: { id: referralUser.code_in_id },
-      });
+      const myReferral = await this.promo.getPromoCodeById(referralUser.code_in_id);
       await ctx.editMessageText(
         `Вы добавили реферальный код:\n\n${myReferral.code}\n\nВы можете оформить подписку со скидкой ${myReferral.discount}%
         

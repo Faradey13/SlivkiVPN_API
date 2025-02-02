@@ -3,6 +3,7 @@ import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
 import { UserService } from '../../../user/user.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { RegionService } from '../../../region/region.service';
 
 @Injectable()
 @Update()
@@ -10,6 +11,7 @@ export class GetKeyHandler {
   constructor(
     private readonly userService: UserService,
     private readonly prisma: PrismaService,
+    private readonly region: RegionService,
   ) {}
   @Action('get_key')
   async handleGetKey(@Ctx() ctx: Context) {
@@ -17,9 +19,7 @@ export class GetKeyHandler {
     const vpnKey = await this.prisma.vpn_keys.findFirst({
       where: { user_id: user.id, is_active: true },
     });
-    const region = await this.prisma.region.findUnique({
-      where: { id: vpnKey.region_id },
-    });
+    const region = await this.region.getRegionById(vpnKey.region_id);
 
     const text = `
 Ваш активный ключ

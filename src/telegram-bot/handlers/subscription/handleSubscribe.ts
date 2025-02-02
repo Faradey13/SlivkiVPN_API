@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
 import { UserService } from '../../../user/user.service';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { SubscriptionService } from '../../../subscription/subscription.service';
 
 @Injectable()
 @Update()
 export class SubscriptionHandler {
   constructor(
     private readonly userService: UserService,
-    private readonly prisma: PrismaService,
+    private readonly subscriptionService: SubscriptionService,
   ) {}
   @Action('subscribe')
   async handleSubscribe(@Ctx() ctx: Context) {
@@ -20,9 +20,7 @@ export class SubscriptionHandler {
       return;
     }
 
-    const subscription = await this.prisma.subscription.findUnique({
-      where: { user_id: user.id },
-    });
+    const subscription = await this.subscriptionService.getUserSubscription(user.id);
 
     if (subscription) {
       const today = new Date();

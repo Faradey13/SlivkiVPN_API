@@ -22,10 +22,8 @@ export class PaymentHandler {
     }
     const callbackData = ctx.callbackQuery.data as string;
     const planId = parseInt(callbackData.split(':')[1]);
-    console.log('plan', planId);
     const user = await this.userService.getUserByTgId(ctx.from.id);
     const plan = await this.subscriptionPlans.getSubscriptionPlanById(planId);
-    console.log('plan', plan);
     const discount = await this.paymentService.getCurrentPromoCode(user.id);
     const amount = this.paymentService.applyDiscount(plan.price, plan.isFree ? 0 : discount.discount);
     const text = `Вы выбрали продление подписки на ${plan.name} за ${amount}₽.

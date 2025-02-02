@@ -1,10 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { addSubscriptionDto } from './dto/subscriptionDto';
 import { OutlineVpnService } from '../outline-vpn/outline-vpn.service';
 import * as nodemailer from 'nodemailer';
 import axios from 'axios';
 import * as process from 'node:process';
+import { subscription } from '@prisma/client';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class SubscriptionService {
@@ -12,6 +16,8 @@ export class SubscriptionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly outline: OutlineVpnService,
+    private readonly userService: UserService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
@@ -24,12 +30,25 @@ export class SubscriptionService {
     });
   }
 
+  async getUserSubscription(userId: number): Promise<subscription | null> {
+    const cacheKey = `user_subscription_${userId}`;
+    try {
+      const cachedSubscription = (await this.cacheManager.get(cacheKey)) as subscription | null;
+      if (cachedSubscription) {
+        return cachedSubscription;
+      }
+      const subscription = await this.prisma.subscription.findUnique({ where: { user_id: userId } });
+      if (subscription) {
+        await this.cacheManager.set(cacheKey, subscription);
+      }
+      return subscription;
+    } catch (error) {
+      throw new Error(`${error} error DB, subscription not found for user ${userId}`);
+    }
+  }
+
   async addSubscription(dto: addSubscriptionDto) {
-    const subscription = await this.prisma.subscription.findUnique({
-      where: {
-        user_id: dto.userId,
-      },
-    });
+    const subscription = await this.getUserSubscription(dto.userId);
 
     if (!subscription) {
       await this.prisma.subscription.create({
@@ -81,18 +100,11 @@ export class SubscriptionService {
     }
   }
 
-  async getAvailablePlans(isFree: boolean) {
-    if (isFree) {
-      return this.prisma.subscription_plan.findMany({ where: { isFree: true } });
-    }
-    return this.prisma.subscription_plan.findMany({ where: { isFree: false } });
-  }
-
   async sendEndSubscriptionWarning(userId: number) {
     try {
       console.log(`Инициализация отправки предупреждения для userId: ${userId}`);
 
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+      const user = await this.userService.getUserById(userId);
       console.log('Найден пользователь:', user);
 
       if (!user) {

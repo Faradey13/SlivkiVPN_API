@@ -12,7 +12,6 @@ export class TokenService {
     private readonly prisma: PrismaService,
     private readonly userService: UserService,
   ) {}
-  //генерация токенов
   async generateToken(payload: TokenDto) {
     try {
       const accessToken = this.jwtService.sign(payload, {
@@ -30,7 +29,7 @@ export class TokenService {
       console.error(`Error generating token: ${error}`);
     }
   }
-  //Сохранение токенов
+
   async saveToken(userId: number, refreshToken: string) {
     const tokenData = await this.prisma.jWT_tokens.findFirst({
       where: {
@@ -42,11 +41,7 @@ export class TokenService {
         data: {
           user_id: userId,
           refresh_token: refreshToken,
-          deletion_date: new Date(
-            new Date().setDate(
-              new Date().getDate() + Number(process.env.TOKEN_LIFETIME),
-            ),
-          ),
+          deletion_date: new Date(new Date().setDate(new Date().getDate() + Number(process.env.TOKEN_LIFETIME))),
         },
       });
     } else {
@@ -54,14 +49,12 @@ export class TokenService {
         data: {
           user_id: userId,
           refresh_token: refreshToken,
-          deletion_date: new Date(
-            new Date().getDate() + Number(process.env.TOKEN_LIFETIME),
-          ),
+          deletion_date: new Date(new Date().getDate() + Number(process.env.TOKEN_LIFETIME)),
         },
       });
     }
   }
-  //получение новых токенов(обьеденяем методы выше)
+
   async newTokens(user: user) {
     const userWithRole = await this.userService.getUserWithRoles(user.id);
     const tokenDto = {
@@ -74,7 +67,7 @@ export class TokenService {
     await this.saveToken(user.id, tokens.refreshToken);
     return { ...tokens, user: tokenDto };
   }
-  //валидация токена доступа
+
   async validateAccessToken(token: string) {
     try {
       return this.jwtService.verify(token, { secret: process.env.PRIVATE_KEY });
@@ -83,7 +76,7 @@ export class TokenService {
       return null;
     }
   }
-  //валидация рефреш токена
+
   async validateRefreshToken(token: string) {
     try {
       return this.jwtService.verify(token, {
@@ -94,7 +87,7 @@ export class TokenService {
       return null;
     }
   }
-  //удаление просроченных рефреш токенов (будет использовано в taskService)
+
   async removeOldToken() {
     return this.prisma.jWT_tokens.deleteMany({
       where: {
@@ -102,7 +95,7 @@ export class TokenService {
       },
     });
   }
-  //Ручное удаление токена
+
   async removeToken(refreshToken: string) {
     const token = await this.prisma.jWT_tokens.delete({
       where: { refresh_token: refreshToken },
@@ -110,7 +103,7 @@ export class TokenService {
     console.log(`token ${token} deleted`);
     return token;
   }
-  //Поиск токена
+
   async findToken(refreshToken: string) {
     const tokenData = await this.prisma.jWT_tokens.findUnique({
       where: { refresh_token: refreshToken },
