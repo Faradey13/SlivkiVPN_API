@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../token/token.service';
 import { UserService } from '../user/user.service';
@@ -7,16 +7,20 @@ import * as nodemailer from 'nodemailer';
 import * as process from 'node:process';
 import * as uuid from 'uuid';
 import { AuthResponseDto } from '../token/dto/tokenDto';
+import { PinoLogger } from 'nestjs-pino';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
   private transporter: nodemailer.Transporter;
-  private readonly logger = new Logger();
   constructor(
+    private readonly logger: PinoLogger,
     private readonly userService: UserService,
     private readonly tokenService: TokenService,
     private readonly prisma: PrismaService,
+    private readonly email: EmailService,
   ) {
+    this.logger.setContext(AuthService.name);
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
@@ -29,20 +33,20 @@ export class AuthService {
   }
   public async sendEmailActivationLink(to: string, link: string): Promise<void> {
     try {
-      this.logger.log(`Sending email to: ${to}`);
+      this.logger.info(`Отправка письма на: ${to}`);
       await this.transporter.sendMail({
         from: 'ikg1366@ya.ru',
         to: to,
         subject: 'Регистрация на сайте SlivkiVPN',
-        text: 'Добро пожаловать, введите этот код для активации акаунта',
+        text: 'Добро пожаловать, введите этот код для активации аккаунта',
         html: `
                 <div><a href="http://localhost:${process.env.PORT}/auth/activation/${link}">
                 Авторизоваться на SlivkiVPN</a></div>
                 `,
       });
-      this.logger.log('Email sent successfully');
+      this.logger.info(`Письмо успешно отправлено ${to}`);
     } catch (error) {
-      this.logger.error(`Error sending email: ${error.message}`);
+      this.logger.error(`Ошибка при отправке письма: ${error.message}`);
       throw error;
     }
   }
@@ -51,24 +55,24 @@ export class AuthService {
   }
 
   async authorization(userDto: createUserDto) {
-    this.logger.log(`Authorization started for email: ${userDto.email}`);
+    this.logger.info(`Начата авторизация для email: ${userDto.email}`);
 
     const activationCode = await this.generateActivationCode();
-    this.logger.debug(`Generated activation code: ${activationCode}`);
+    this.logger.debug(`Сгенерирован код активации: ${activationCode}`);
 
     let candidate = await this.userService.getUserByEmail(userDto.email);
     if (!candidate) {
-      this.logger.log(`User not found by email: ${userDto.email}. Creating new user...`);
+      this.logger.info(`Пользователь с email: ${userDto.email} не найден. Создание нового пользователя...`);
       candidate = await this.userService.createUser({
         email: userDto.email,
       });
-      this.logger.log(`New user created with ID: ${candidate.id}`);
+      this.logger.info(`Создан новый пользователь с ID: ${candidate.id}`);
     } else {
-      this.logger.log(`User found with ID: ${candidate.id}`);
+      this.logger.info(`Найден пользователь с ID: ${candidate.id}`);
     }
 
-    await this.sendEmailActivationLink(userDto.email, activationCode);
-    this.logger.log(`Activation email sent to: ${userDto.email}`);
+    await this.email.sendActivationEmail({ email: userDto.email, link: activationCode, type: 'activation' });
+    this.logger.info(`Отправлено письмо с активацией на: ${userDto.email}`);
 
     await this.prisma.activation_codes.upsert({
       where: { user_id: candidate.id },
@@ -78,14 +82,14 @@ export class AuthService {
         user_id: candidate.id,
       },
     });
-    this.logger.log(`Activation code upserted for user ID: ${candidate.id}`);
+    this.logger.info(`Код активации обновлен для пользователя ID: ${candidate.id}`);
 
-    this.logger.log(`Authorization completed for email: ${userDto.email}`);
-    return 'Authorization link sent to email';
+    this.logger.info(`Авторизация завершена для email: ${userDto.email}`);
+    return 'Ссылка для авторизации отправлена на email';
   }
 
   async activate(activationCode: string): Promise<AuthResponseDto | string> {
-    this.logger.log(`Activation Code: ${activationCode}`);
+    this.logger.info(`Получен код активации: ${activationCode}`);
     try {
       const result = await this.prisma.activation_codes.findUnique({
         where: {
@@ -95,22 +99,23 @@ export class AuthService {
           user: true,
         },
       });
-      this.logger.log(`result: ${result}`);
+      this.logger.info(`Результат поиска кода активации для пользователя ${result.user_id}`);
       if (!result) {
-        throw new Error('Activation code not found or invalid');
+        this.logger.error(`Код активации не найден или недействителен`);
+        throw new Error('Код активации не найден или недействителен');
       }
-      this.logger.log('The link is expired, please request again');
+      this.logger.warn('Срок действия ссылки истек, запросите новую');
       const now = new Date().getTime();
       const codeCreatedAt = new Date(result.created_at).getTime();
 
       if (activationCode !== result.activation_code) {
-        this.logger.log('Link incorrect');
-        return 'Link incorrect';
+        this.logger.warn('Некорректная ссылка');
+        return 'Некорректная ссылка';
       }
 
       if (now - codeCreatedAt > Number(process.env.ACTIVATION_CODE_LIFETIME)) {
-        this.logger.log('The link is expired, please request again');
-        return 'The link is expired, please request again';
+        this.logger.warn('Срок действия ссылки истек, запросите новую');
+        return 'Срок действия ссылки истек, запросите новую';
       }
       await this.prisma.user.update({
         where: {
@@ -125,8 +130,12 @@ export class AuthService {
           activation_code: activationCode,
         },
       });
+      this.logger.info(
+        `Пользователь ${result.user.email} успешно активировал свой профель, создаем токены доступа`,
+      );
       return await this.tokenService.newTokens(result.user);
     } catch (error) {
+      this.logger.error(`Неудачное подтверждение акаунта ${error.message} для пользователя`);
       throw new Error(error);
     }
   }
@@ -144,7 +153,7 @@ export class AuthService {
     });
 
     if (!updatedRecord) {
-      throw new Error('Failed to update activation code');
+      throw new Error('Не удалось обновить код активации');
     }
     const result = await this.prisma.activation_codes.findFirst({
       where: {
@@ -160,18 +169,18 @@ export class AuthService {
       await this.tokenService.removeToken(refreshToken);
       return;
     } catch {
-      throw new HttpException('Error while logging out', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException('Ошибка при выходе из системы', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   async refresh(refreshToken: string) {
     if (!refreshToken) {
-      throw new UnauthorizedException('User not authorized');
+      throw new UnauthorizedException('Пользователь не авторизован');
     }
     const userData = await this.tokenService.validateRefreshToken(refreshToken);
     const tokenFromDB = await this.tokenService.findToken(refreshToken);
     if (!userData || !tokenFromDB) {
-      throw new UnauthorizedException('User not authorized');
+      throw new UnauthorizedException('Пользователь не авторизован');
     }
     const user = await this.userService.getUserWithRoles(tokenFromDB.user_id);
     return await this.tokenService.newTokens(user);

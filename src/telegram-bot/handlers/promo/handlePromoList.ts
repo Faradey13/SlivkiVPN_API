@@ -5,16 +5,20 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { Context, Markup } from 'telegraf';
 import { TelegramBotUtils } from '../../telegram-bot.utils';
 import { PromoService } from '../../../promo/promo.service';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 @Update()
 export class PromoListHandler {
   constructor(
+    private readonly logger: PinoLogger,
     private readonly userService: UserService,
     private readonly prisma: PrismaService,
     private readonly botUtils: TelegramBotUtils,
     private readonly promo: PromoService,
-  ) {}
+  ) {
+    this.logger.setContext(PromoListHandler.name);
+  }
 
   @Action('promo-code_list')
   async handlePromoList(@Ctx() ctx: Context) {
@@ -22,6 +26,7 @@ export class PromoListHandler {
     const userPromoCodesNotActive = await this.prisma.promo_codes.findMany({
       where: { user_promocodes: { some: { user_id: user.id, is_active: false, isUsed: false } } },
     });
+    this.logger.info(`Пользователь ID: ${user.id} зашел на страницу выбора активного промокода`);
     const keyboard1 = Markup.inlineKeyboard([
       [Markup.button.callback('⬅️ Назад', 'promotion')],
       [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
@@ -32,7 +37,8 @@ export class PromoListHandler {
 
     const buttons = userPromoCodesNotActive.map((code) => [
       Markup.button.callback(
-        `${code.code}, скидка ${code.discount}%, действует ${this.botUtils.daysUntilEnd(code.created_at, code.period)} дня(ей)`,
+        `${code.code}, скидка ${code.discount}%, 
+        действует ${this.botUtils.daysUntilEnd(code.created_at, code.period)} дня(ей)`,
         `set_active:${code.id}`,
       ),
     ]);

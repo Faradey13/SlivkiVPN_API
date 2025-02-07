@@ -1,12 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as cookieParser from 'cookie-parser';
-import { join } from 'path';
+import cookieParser from 'cookie-parser';
+import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
+  app.useLogger(app.get(Logger));
   const config = new DocumentBuilder()
     .setTitle('VPN сервис')
     .setDescription('Документация REST API')
@@ -22,9 +23,9 @@ async function bootstrap() {
   });
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/docs', app, document);
-
-  console.log(join(__dirname, '..', 'data'), 'path to data');
+  app.useGlobalPipes();
   const PORT = process.env.PORT || 5000;
   await app.listen(PORT, '0.0.0.0', () => console.log(`Server started on port ${PORT}`));
 }
+
 bootstrap();

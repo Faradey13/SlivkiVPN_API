@@ -6,6 +6,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { SubscriptionService } from '../../../subscription/subscription.service';
 import { PaymentService } from '../../../payment/payment.service';
 import { SubscriptionPlanService } from '../../../subscription/subscription-plan.service';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 @Update()
@@ -16,7 +17,11 @@ export class ExtendSubscriptionHandler {
     private readonly subscriptionPlan: SubscriptionPlanService,
     private readonly paymentService: PaymentService,
     private readonly subscriptionService: SubscriptionService,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(ExtendSubscriptionHandler.name);
+  }
+
   @Action('extend_subscription')
   async handleExtendSubscription(@Ctx() ctx: Context) {
     const user = await this.userService.getUserByTgId(ctx.from.id);
@@ -29,6 +34,7 @@ export class ExtendSubscriptionHandler {
     const subscription = await this.subscriptionService.getUserSubscription(user.id);
 
     const discount = await this.paymentService.getCurrentPromoCode(user.id);
+    this.logger.info(`Пользователь ID: ${user.id} зашел на страницу продления или покупки подписки`);
     const buttons = subscriptionPlans.map((plan) => [
       Markup.button.callback(
         `${plan.name}-${this.paymentService.applyDiscount(plan.price, !plan.isFree ? discount.discount : 0)}₽`,
@@ -40,7 +46,9 @@ export class ExtendSubscriptionHandler {
     const keyboard = Markup.inlineKeyboard(buttons);
 
     const message =
-      subscription?.subscription_status === true ? 'Выберите срок продления подписки:' : 'Выберите срок подписки:';
+      subscription?.subscription_status === true
+        ? 'Выберите срок продления подписки:'
+        : 'Выберите срок подписки:';
 
     await ctx.editMessageText(message, keyboard);
   }

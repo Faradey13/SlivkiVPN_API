@@ -1,156 +1,189 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { addSubscriptionDto } from './dto/subscriptionDto';
 import { OutlineVpnService } from '../outline-vpn/outline-vpn.service';
-import * as nodemailer from 'nodemailer';
-import axios from 'axios';
-import * as process from 'node:process';
 import { subscription } from '@prisma/client';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { UserService } from '../user/user.service';
+import { PinoLogger } from 'nestjs-pino';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
-export class SubscriptionService {
-  private transporter: nodemailer.Transporter;
+export class SubscriptionService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly outline: OutlineVpnService,
-    private readonly userService: UserService,
+    private readonly logger: PinoLogger,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @InjectQueue('findUserForWarning') private readonly warningQueue: Queue,
+    @InjectQueue('stopSubscriptions') private readonly stopSubscriptions: Queue,
   ) {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: true,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
+    this.logger.setContext(SubscriptionService.name);
+  }
+
+  async onModuleInit() {
+    await this.warningQueue.add(
+      'findUserForWarning',
+      { jobData: 'every 5 minutes h data' },
+      {
+        repeat: {
+          pattern: '5 * * * *',
+        },
+        jobId: 'every-5-minutes-h-job',
       },
-    });
+    );
+    await this.stopSubscriptions.add(
+      'stopSubscriptions',
+      { jobData: 'every 15 minutes h data' },
+      {
+        repeat: {
+          pattern: '15 * * * *',
+        },
+        jobId: 'every-15-minutes-h-job',
+      },
+    );
   }
 
   async getUserSubscription(userId: number): Promise<subscription | null> {
     const cacheKey = `user_subscription_${userId}`;
     try {
+      this.logger.info(`Запрос подписки для пользователя: ${userId}`);
       const cachedSubscription = (await this.cacheManager.get(cacheKey)) as subscription | null;
       if (cachedSubscription) {
+        this.logger.info(`Подписка для пользователя ${userId} найдена в кэше`);
         return cachedSubscription;
       }
       const subscription = await this.prisma.subscription.findUnique({ where: { user_id: userId } });
       if (subscription) {
         await this.cacheManager.set(cacheKey, subscription);
+        this.logger.info(`Подписка пользователя ${userId} загружена из базы и сохранена в кэше`);
       }
       return subscription;
     } catch (error) {
-      throw new Error(`${error} error DB, subscription not found for user ${userId}`);
+      this.logger.error(`Ошибка получения подписки пользователя ${userId}: ${error.message}`);
+      throw new Error(`Ошибка базы данных: подписка не найдена для пользователя ${userId}`);
     }
   }
 
   async addSubscription(dto: addSubscriptionDto) {
-    const subscription = await this.getUserSubscription(dto.userId);
+    try {
+      this.logger.info(`Добавление подписки для пользователя: ${dto.userId}`);
+      const subscription = await this.getUserSubscription(dto.userId);
 
-    if (!subscription) {
-      await this.prisma.subscription.create({
+      if (!subscription) {
+        const newSub = await this.prisma.subscription.create({
+          data: {
+            user_id: dto.userId,
+            subscription_start: new Date(),
+            subscription_end: new Date(new Date().getTime() + dto.period * 24 * 60 * 60 * 1000),
+            subscription_status: true,
+          },
+        });
+        await this.outline.createSetKeys(dto.userId);
+        this.logger.info(`Подписка для пользователя ${dto.userId} успешно создана`);
+        return newSub;
+      }
+
+      const sub = await this.prisma.subscription.update({
+        where: { user_id: dto.userId },
         data: {
-          user_id: dto.userId,
-          subscription_start: new Date(),
-          subscription_end: new Date(new Date().getTime() + dto.period * 24 * 60 * 60 * 1000),
+          subscription_start:
+            subscription.subscription_status === false ? new Date() : subscription.subscription_start,
+          subscription_end: new Date(
+            subscription.subscription_end.getTime() + dto.period * 24 * 60 * 60 * 1000,
+          ),
           subscription_status: true,
+          is_warning_sent: false,
         },
       });
-      await this.outline.createSetKeys(dto.userId);
-      return;
-    }
 
-    await this.prisma.subscription.update({
-      where: {
-        user_id: dto.userId,
-      },
-      data: {
-        subscription_start: subscription.subscription_status === false ? new Date() : subscription.subscription_start,
-        subscription_end: new Date(subscription.subscription_end.getTime() + dto.period * 24 * 60 * 60 * 1000),
-        subscription_status: true,
-        is_warning_sent: false,
-      },
-    });
-
-    if (subscription.subscription_status === false) {
-      await this.outline.createSetKeys(dto.userId);
+      if (subscription.subscription_status === false) {
+        await this.outline.createSetKeys(dto.userId);
+      }
+      this.logger.info(`Подписка пользователя ${dto.userId} успешно обновлена`);
+      return sub;
+    } catch (error) {
+      this.logger.error(`Ошибка при добавлении подписки для пользователя ${dto.userId}: ${error.message}`);
+      throw new Error(`Ошибка при обновлении подписки пользователя ${dto.userId}`);
     }
   }
 
   async endSubscription(userId: number) {
     try {
+      this.logger.info(`Окончание подписки для пользователя ${userId}`);
       await this.prisma.subscription.update({
-        where: {
-          user_id: userId,
-        },
-        data: {
-          subscription_status: false,
-        },
+        where: { user_id: userId },
+        data: { subscription_status: false, subscription_end: null, subscription_start: null },
       });
-    } catch (error) {
-      throw new Error(`Error while updating subscription status: ${error}`);
-    }
-    try {
       await this.outline.removeAllKeysUser(userId);
+      this.logger.info(`Подписка пользователя ${userId} завершена, ключи удалены`);
     } catch (error) {
-      throw new Error(`Error in removing keys : ${error.message}`);
+      this.logger.error(`Ошибка при завершении подписки пользователя ${userId}: ${error.message}`);
+      throw new Error(`Ошибка при окончании подписки пользователя ${userId}`);
     }
   }
 
-  async sendEndSubscriptionWarning(userId: number) {
+  // async sendEndSubscriptionWarning(userId: number) {
+  // try {
+  //   this.logger.info(`Отправка предупреждения об окончании подписки для пользователя ${userId}`);
+  //   const user = await this.userService.getUserById(userId);
+  //   if (!user) {
+  //     this.logger.warn(`Пользователь с userId ${userId} не найден.`);
+  //     return { status: 'error', message: 'User not found' };
+  //   }
+  //
+  //   if (user.email) {
+  //     try {
+  //       await this.transporter.sendMail({
+  //         from: 'ikg1366@ya.ru',
+  //         to: user.email,
+  //         subject: 'Предупреждение об окончании подписки SlivkiVPN',
+  //         text: 'Здравствуйте, срок вашей подписки завершается завтра, продлите подписку',
+  //       });
+  //       this.logger.info(`Email-уведомление отправлено пользователю ${userId} на ${user.email}`);
+  //     } catch (emailError) {
+  //       this.logger.error(`Ошибка при отправке email пользователю ${userId}: ${emailError.message}`);
+  //     }
+  //   } else {
+  //     this.logger.warn(`У пользователя ${userId} отсутствует email.`);
+  //   }
+  //
+  //   if (user.telegram_user_id) {
+  //     try {
+  //       const text = 'Срок вашей подписки заканчивается завтра, продлите подписку';
+  //       await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+  //         chat_id: user.telegram_user_id.toString(),
+  //         text: text,
+  //       });
+  //       this.logger.info(`Telegram-уведомление отправлено пользователю ${userId}`);
+  //     } catch (telegramError) {
+  //       this.logger.error(
+  //         `Ошибка при отправке Telegram-сообщения пользователю ${userId}: ${telegramError.message}`,
+  //       );
+  //       return { status: 'error', message: 'Error sending Telegram message' };
+  //     }
+  //   } else {
+  //     this.logger.warn(`У пользователя ${userId} отсутствует Telegram ID.`);
+  //   }
+  //
+  //   await this.prisma.subscription.update({ where: { user_id: userId }, data: { is_warning_sent: true } });
+  //   this.logger.info(`Статус предупреждения обновлен для пользователя ${userId}`);
+  //   return { status: 'success', message: 'Warnings sent where applicable' };
+  // } catch (error) {
+  //   this.logger.error(`Ошибка в sendEndSubscriptionWarning для пользователя ${userId}: ${error.message}`);
+  //   return { status: 'error', message: 'Unexpected error occurred' };
+  //   // }
+  // }
+
+  async getSubscriptionStatistics() {
+    this.logger.info(`Начало сбора статистики по подпискам`);
     try {
-      console.log(`Инициализация отправки предупреждения для userId: ${userId}`);
-
-      const user = await this.userService.getUserById(userId);
-      console.log('Найден пользователь:', user);
-
-      if (!user) {
-        console.warn(`Пользователь с userId ${userId} не найден.`);
-        return { status: 'error', message: 'User not found' };
-      }
-
-      if (user.email) {
-        console.log(`Отправка email на адрес: ${user.email}`);
-        try {
-          await this.transporter.sendMail({
-            from: 'ikg1366@ya.ru',
-            to: user.email,
-            subject: 'Предупреждение об окончании подписки SlivkiVPN',
-            text: 'Здравствуйте, срок вашей подписки завершается завтра, проблите подписку',
-          });
-          console.log('Email успешно отправлен.');
-        } catch (emailError) {
-          console.error('Ошибка при отправке email:', emailError);
-        }
-      } else {
-        console.warn(`У пользователя с userId ${userId} отсутствует email.`);
-      }
-
-      if (user.telegram_user_id) {
-        console.log(`Отправка сообщения в Telegram, user_id: ${user.telegram_user_id}`);
-        try {
-          const text = 'Срок вашей подписки заканчивается завтра, проблите подписку';
-          await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            chat_id: user.telegram_user_id.toString(),
-            text: text,
-          });
-          console.log('Сообщение в Telegram успешно отправлено.');
-        } catch (telegramError) {
-          console.error('Ошибка при отправке сообщения в Telegram:', telegramError);
-          return { status: 'error', message: 'Error sending Telegram message' };
-        }
-      } else {
-        console.warn(`У пользователя с userId ${userId} отсутствует Telegram ID.`);
-      }
-      console.log('отправка успешна, смена статуса');
-      await this.prisma.subscription.update({ where: { user_id: userId }, data: { is_warning_sent: true } });
-      return { status: 'success', message: 'Warnings sent where applicable' };
+      const subStat = await this.prisma.subscription_statictic.createMany();
+      this.logger.info(`Статистика собрана успешно`);
+      return subStat;
     } catch (error) {
-      console.error('Общая ошибка в sendEndSubscriptionWarning:', error);
-      return { status: 'error', message: 'Unexpected error occurred' };
+      this.logger.error(`Ошибка в сборе статистики по подпискам: ${error.message}`);
     }
   }
 }

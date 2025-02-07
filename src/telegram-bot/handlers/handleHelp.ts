@@ -1,12 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 @Update()
 export class HelpHandler {
+  constructor(private readonly logger: PinoLogger) {
+    this.logger.setContext(HelpHandler.name);
+  }
   @Action('help')
   async handleHelp(@Ctx() ctx: Context) {
+    this.logger.info(`Пользователь ${ctx.from.id} зашел на страницу помощи`);
     const text = `
 Этот бот предназначен для удобного управления вашими VPN-подписками.
 

@@ -3,6 +3,7 @@ import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
 import { UserService } from '../../../user/user.service';
 import { SubscriptionService } from '../../../subscription/subscription.service';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 @Update()
@@ -10,7 +11,10 @@ export class SubscriptionHandler {
   constructor(
     private readonly userService: UserService,
     private readonly subscriptionService: SubscriptionService,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(SubscriptionHandler.name);
+  }
   @Action('subscribe')
   async handleSubscribe(@Ctx() ctx: Context) {
     const user = await this.userService.getUserByTgId(ctx.from.id);
@@ -19,10 +23,10 @@ export class SubscriptionHandler {
       console.log('Пользователь с таким telegram_id не найден');
       return;
     }
-
+    this.logger.info(`Пользователь ID: ${user.id} зашел на страницу подписок`);
     const subscription = await this.subscriptionService.getUserSubscription(user.id);
-
     if (subscription) {
+      this.logger.info(`Пользователь ID: ${user.id} имеент активную подписку ID: ${subscription.id}`);
       const today = new Date();
       const subscriptionEnd = subscription.subscription_end.toISOString().split('T')[0];
       const diffInTime = subscription.subscription_end.getTime() - today.getTime();
@@ -52,6 +56,7 @@ export class SubscriptionHandler {
 
       await ctx.editMessageText(activeSubMenuText, keyboard);
     } else {
+      this.logger.info(`У пользователя ID: ${user.id} нет активной подписки`);
       const newSubMenuText = `
 У вас пока нет активной подписки. Оформите подписку, чтобы получить доступ к ключу.
 

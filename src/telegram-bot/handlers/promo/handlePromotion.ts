@@ -6,7 +6,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { PromoService } from '../../../promo/promo.service';
 import { TelegramBotUtils } from '../../telegram-bot.utils';
 import { ReferralService } from '../../../referral/referral.service';
-
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 @Update()
@@ -18,7 +18,10 @@ export class PromotionHandler {
     private readonly referralService: ReferralService,
     private readonly botUtils: TelegramBotUtils,
     private readonly promo: PromoService,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(PromotionHandler.name);
+  }
 
   @Action('promotion')
   async handleEnterPromoCode(@Ctx() ctx: Context) {
@@ -41,7 +44,9 @@ export class PromotionHandler {
     ]);
     const user = await this.userService.getUserByTgId(ctx.from.id);
     const referralUser = await this.referralService.getUserReferral(user.id);
-
+    this.logger.info(
+      `Пользователь ID: ${user.id} зашел на страницу с иеформацие о своих действующих промокодах`,
+    );
     if (referralUser.code_in_id && !referralUser.isUsed) {
       const myReferral = await this.promo.getPromoCodeById(referralUser.code_in_id);
       await ctx.editMessageText(
@@ -68,7 +73,10 @@ export class PromotionHandler {
       where: { user_id: user.id, is_active: true, isUsed: false },
     });
     if (userPromoActive.length !== 1 || !userPromoActive) {
-      await this.prisma.user_promocodes.updateMany({ where: { user_id: user.id }, data: { is_active: false } });
+      await this.prisma.user_promocodes.updateMany({
+        where: { user_id: user.id },
+        data: { is_active: false },
+      });
       await ctx.editMessageText('Активный промокод не установлен, выберете его', keyboard);
     }
 

@@ -1,17 +1,20 @@
 import { Action, Ctx, Start, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../../user/user.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { OutlineVpnService } from '../../outline-vpn/outline-vpn.service';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 @Update()
 export class StartHandler {
   constructor(
+    private readonly logger: PinoLogger,
     private readonly userService: UserService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) {
+    this.logger.setContext(StartHandler.name);
+  }
 
   @Start()
   @Action('back_to_menu')
@@ -19,10 +22,20 @@ export class StartHandler {
     const userId = ctx.from.id;
     const nameTg = ctx.from.username;
     const user = await this.userService.getUserByTgId(userId);
-
+    this.logger.info(`Телеграм бот запущен для пользователя: ${userId}`);
     if (!user) {
-      const newUser = await this.userService.createUser({ telegram_user_id: userId });
-      await this.prisma.user.update({ where: { id: newUser.id }, data: { is_activated: true, telegram_name: nameTg } });
+      this.logger.info(`Пользователь ${userId} не зарегестрирован, создаем запись`);
+      try {
+        const newUser = await this.userService.createUser({ telegram_user_id: userId });
+        await this.prisma.user.update({
+          where: { id: newUser.id },
+          data: { is_activated: true, telegram_name: nameTg },
+        });
+        this.logger.info(`Пользователь ${userId} зарегестрирован`);
+      } catch (error) {
+        this.logger.error(`ошибка создания учетной записи для ${userId} `);
+        throw new UnauthorizedException(error.message);
+      }
     }
 
     const startText = `

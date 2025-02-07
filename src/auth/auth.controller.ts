@@ -16,11 +16,19 @@ import { AuthService } from './auth.service';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { createUserDto } from '../user/dto/createUser.dto';
 import { AuthResponseDto } from '../token/dto/tokenDto';
+import { PinoLogger } from 'nestjs-pino';
+import { TokenService } from '../token/token.service';
 
-@ApiTags('Authentication') // Группировка эндпоинтов в Swagger
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private readonly logger: PinoLogger,
+    private readonly tokenService: TokenService,
+  ) {
+    this.logger.setContext(AuthController.name);
+  }
 
   @ApiOperation({ summary: 'Регистрация пользователя' })
   @ApiBody({
@@ -37,10 +45,12 @@ export class AuthController {
   })
   @Post('/login')
   async authorization(@Body() userDto: createUserDto): Promise<{ message: string }> {
+    this.logger.info(`Авторизация: ${userDto.email}`);
     try {
       await this.authService.authorization(userDto);
       return { message: 'User successfully registered' };
     } catch (e) {
+      this.logger.error(`Ошибка регистрации: ${e.message}`, e.stack);
       throw new BadRequestException(`Registration error: ${e.message}`);
     }
   }
@@ -57,7 +67,7 @@ export class AuthController {
   })
   @Get('/activation/:link')
   async activation(@Res() res: Response, @Param('link', ParseUUIDPipe) link: string): Promise<any> {
-    console.log(link, 'код активации');
+    this.logger.info(`Активация аккаунта, код: ${link}`);
     try {
       const UserData = await this.authService.activate(link);
 
@@ -68,10 +78,12 @@ export class AuthController {
         });
         return res.status(200).json(UserData);
       }
+      this.logger.warn('Ошибка активации: неизвестная ошибка');
       res.status(400).json({
         message: typeof UserData === 'string' ? UserData : 'Unknown activation error',
       });
     } catch (e) {
+      this.logger.error(`Ошибка активации: ${e.message}`, e.stack);
       throw new BadRequestException(`Activation error: ${e.message}`);
     }
   }
@@ -89,10 +101,13 @@ export class AuthController {
   async logout(@Req() req: Request, @Res() res: Response) {
     try {
       const refreshToken = req.cookies['refreshToken'];
+      this.logger.info(`Выход из аккаунта, refreshToken: ${refreshToken ? 'есть' : 'нет'}`);
+
       await this.authService.logout(refreshToken);
       res.clearCookie('refreshToken');
       return res.status(200).json({ message: 'Logged out successfully' });
     } catch (e) {
+      this.logger.error(`Ошибка выхода: ${e.message}`, e.stack);
       throw new HttpException(`Ошибка логаута ${e.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -110,12 +125,19 @@ export class AuthController {
   @Get('/refresh')
   async refresh(@Req() req: Request, @Res() res: Response): Promise<any> {
     const refreshToken = req.cookies['refreshToken'];
-    const UserData = await this.authService.refresh(refreshToken);
-    res.cookie('refreshToken', UserData.refreshToken, {
-      httpOnly: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
-    return res.status(200).json(UserData);
+    this.logger.info(`Обновление токена, refreshToken: ${refreshToken ? 'есть' : 'нет'}`);
+
+    try {
+      const userData = await this.authService.refresh(refreshToken);
+      res.cookie('refreshToken', userData.refreshToken, {
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+      return res.status(200).json(userData);
+    } catch (e) {
+      this.logger.error(`Ошибка обновления токена: ${e.message}`, e.stack);
+      throw new HttpException(`Ошибка обновления токена: ${e.message}`, HttpStatus.UNAUTHORIZED);
+    }
   }
 
   @ApiOperation({ summary: 'Повторная отправка ссылки активации' })
@@ -141,7 +163,10 @@ export class AuthController {
   })
   @Post('/resend_link')
   async resendActivationCode(@Body('oldActivationCode') oldActivationCode: string): Promise<any> {
+    this.logger.info(`Повторная отправка кода активации: ${oldActivationCode}`);
+
     if (!oldActivationCode) {
+      this.logger.warn('Не передан старый код активации');
       throw new BadRequestException('Old activation code is required');
     }
 
@@ -152,7 +177,36 @@ export class AuthController {
         updatedRecord,
       };
     } catch (error) {
+      this.logger.error(`Ошибка повторной отправки кода активации: ${error.message}`, error.stack);
       throw new BadRequestException(`Error resending activation code: ${error.message}`);
+    }
+  }
+
+  @Post('validate-access-token')
+  @ApiOperation({ summary: 'Проверка Access Token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Access Token валиден',
+    type: Boolean,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Неверный или просроченный токен',
+  })
+  async validateAccessToken(@Body() token: string) {
+    try {
+      this.logger.info(`Проверяю accessToken: ${token}`);
+      const isValid = await this.tokenService.validateAccessToken(token);
+      if (isValid) {
+        this.logger.info(`AccessToken для ${token} валиден.`);
+        return true;
+      } else {
+        this.logger.warn(`AccessToken для ${token} невалиден.`);
+        return false;
+      }
+    } catch (error) {
+      this.logger.error(`Ошибка при валидации accessToken: ${error}`);
+      return false;
     }
   }
 }

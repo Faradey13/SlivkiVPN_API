@@ -4,13 +4,17 @@ import { OutlineVpnService } from './outline-vpn.service';
 import { responsePromoDto } from '../promo/dto/promo.dto';
 import { createKeyDto, metricDto, protocolDto } from './dto/outline.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { PinoLogger } from 'nestjs-pino';
 
 @Controller('outline-vpn_keys')
 export class OutlineVpnController {
   constructor(
+    private readonly logger: PinoLogger,
     private readonly vpnKeysService: OutlineVpnService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) {
+    this.logger.setContext(OutlineVpnController.name);
+  }
 
   @ApiOperation({ summary: 'Получить все VPN ключи' })
   @ApiResponse({
@@ -25,8 +29,10 @@ export class OutlineVpnController {
   @Get()
   async getAllKeys() {
     try {
+      this.logger.info('Запрос всех VPN-ключей');
       return await this.vpnKeysService.getAllKeys();
-    } catch {
+    } catch (error) {
+      this.logger.error(`Ошибка при получении ключей: ${error.message}`);
       throw new BadRequestException('Не удалось получить все ключи');
     }
   }
@@ -47,32 +53,51 @@ export class OutlineVpnController {
   @Delete(':id')
   async delKey(@Param('id') keyId: number) {
     try {
+      this.logger.info(`Удаление VPN-ключа с ID: ${keyId}`);
       const result = await this.vpnKeysService.delKey(keyId);
       if (result instanceof Error) {
         throw new BadRequestException(result.message);
       }
-      return { message: 'VPN ключ успешно удален.' };
+      return { message: 'VPN-ключ успешно удален.' };
     } catch (error) {
+      this.logger.error(`Ошибка при удалении ключа: ${error.message}`);
       throw new BadRequestException(`Ошибка при удалении ключа: ${error.message}`);
     }
   }
 
+  @ApiOperation({ summary: 'Создать новый VPN ключ' })
   @Post('/new_key')
   createKey(@Body() dto: createKeyDto) {
-    return this.vpnKeysService.createKey({
-      regionId: dto.regionId,
-      userId: dto.userId,
-    });
+    try {
+      this.logger.info(`Создание нового VPN-ключа для пользователя ${dto.userId} в регионе ${dto.regionId}`);
+      return this.vpnKeysService.createKey(dto);
+    } catch (error) {
+      this.logger.error(`Ошибка при создании ключа: ${error.message}`);
+      throw new BadRequestException(`Ошибка при создании ключа: ${error.message}`);
+    }
   }
+
+  @ApiOperation({ summary: 'Добавить новый протокол(перенести в другой контроллер потом)' })
   @Post('/protocol')
   addProtocol(@Body() dto: protocolDto) {
-    console.log(dto);
-
-    return this.prisma.protocol.create({ data: { protocol_name: dto.name } });
+    try {
+      this.logger.info(`Добавление нового протокола: ${dto.name}`);
+      return this.prisma.protocol.create({ data: { protocol_name: dto.name } });
+    } catch (error) {
+      this.logger.error(`Ошибка при добавлении нового протокола: ${error.message}`);
+      throw new BadRequestException(`Ошибка при добавлении нового протокола: ${error.message}`);
+    }
   }
 
+  @ApiOperation({ summary: 'Получение метрики по региону' })
   @Post('/metric')
   metric(@Body() dto: metricDto) {
-    return this.vpnKeysService.getMetrics(dto.regionId);
+    try {
+      this.logger.info(`Получение метрик для региона ${dto.regionId}`);
+      return this.vpnKeysService.getMetrics(dto.regionId);
+    } catch (error) {
+      this.logger.error(`Ошибка при получении метрик для региона: ${error.message}`);
+      throw new BadRequestException(`Ошибка при получении метрик для региона: ${error.message}`);
+    }
   }
 }

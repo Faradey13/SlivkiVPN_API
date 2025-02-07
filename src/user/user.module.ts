@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { RoleModule } from '../role/role.module';
@@ -7,7 +7,7 @@ import { PromoModule } from '../promo/promo.module';
 import { OutlineVpnModule } from '../outline-vpn/outline-vpn.module';
 
 @Module({
-  imports: [PrismaModule, RoleModule, PromoModule, OutlineVpnModule],
+  imports: [PrismaModule, RoleModule, OutlineVpnModule, forwardRef(() => PromoModule)],
   providers: [UserService],
   controllers: [UserController],
   exports: [UserService],

@@ -13,12 +13,15 @@ import { ConfigModule } from '@nestjs/config';
 import { PaymentModule } from './payment/payment.module';
 import { ReferralModule } from './referral/referral.module';
 import { PromoModule } from './promo/promo.module';
-import { AdminModule } from './admin/admin.module';
 import { StatisticModule } from './statistic/statistic.module';
-import { TaskModule } from './task/task.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
+import { LoggerModule } from 'nestjs-pino';
+import moment from 'moment-timezone';
+import { BullModule } from '@nestjs/bullmq';
+import { QueueModule } from './queue/queue.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -39,9 +42,16 @@ import { redisStore } from 'cache-manager-redis-store';
     PaymentModule,
     ReferralModule,
     PromoModule,
-    AdminModule,
     StatisticModule,
-    TaskModule,
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
+    BullModule.registerQueue({
+      name: 'emailQueue',
+    }),
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: async () => ({
@@ -51,6 +61,43 @@ import { redisStore } from 'cache-manager-redis-store';
         ttl: 60 * 60,
       }),
     }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: {
+          target: 'pino-loki',
+          options: {
+            host: 'http://localhost:3100',
+            batching: true,
+            interval: 5,
+            replaceTimestamp: true,
+            labels: {
+              app: 'slivki-api',
+              component: 'slivki-nest',
+            },
+          },
+        },
+        formatters: {
+          bindings: () => ({}),
+          level: (label) => ({ level: label.toUpperCase() }),
+        },
+        level: 'info',
+        timestamp: () => `,"time":"${moment().tz('Europe/Moscow').format('YYYY-MM-DD HH:mm:ss')}"`,
+        serializers: {
+          req(req) {
+            return {
+              url: req.url,
+            };
+          },
+          res(res) {
+            return {
+              statusCode: res.statusCode,
+            };
+          },
+        },
+      },
+    }),
+    QueueModule,
+    EmailModule,
   ],
   controllers: [],
   providers: [],

@@ -27,7 +27,7 @@ module.exports = {
       "error",
       {
         "endOfLine": "auto",
-        "printWidth": 120
+        "printWidth": 110
       }
     ]
   },
