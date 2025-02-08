@@ -20,8 +20,8 @@ import { redisStore } from 'cache-manager-redis-store';
 import { LoggerModule } from 'nestjs-pino';
 import moment from 'moment-timezone';
 import { BullModule } from '@nestjs/bullmq';
-import { QueueModule } from './queue/queue.module';
 import { EmailModule } from './email/email.module';
+import { HealthCheckModule } from './health-check/health-check.module';
 
 @Module({
   imports: [
@@ -96,8 +96,8 @@ import { EmailModule } from './email/email.module';
         },
       },
     }),
-    QueueModule,
     EmailModule,
+    HealthCheckModule,
   ],
   controllers: [],
   providers: [],
