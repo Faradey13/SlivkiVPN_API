@@ -5,6 +5,7 @@ import { TelegramBotUtils } from '../../telegram-bot.utils';
 import { RegionService } from '../../../region/region.service';
 import { PinoLogger } from 'nestjs-pino';
 import { UserService } from '../../../user/user.service';
+import { smartTvRegionText } from '../../text&buttons/text&buttons';
 
 @Injectable()
 @Update()
@@ -25,11 +26,11 @@ export class SmartTvRegionHandlers {
     const buttons = regions.map((region) =>
       Markup.button.callback(`${region.flag} ${region.region_name}`, `get_smartTv_file:${region.id}`),
     );
-    buttons.push(Markup.button.callback('⬅️ Назад', 'subscribe'));
+    buttons.push(Markup.button.callback('⬅️ Назад', 'vpn_menu'));
     buttons.push(Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu'));
 
     const groupedButtons = this.botUtils.chunkArray(buttons, 1);
     const keyboard = Markup.inlineKeyboard(groupedButtons);
-    await ctx.editMessageText('🌍Выберите регион для подключения:', keyboard);
+    await ctx.editMessageText(smartTvRegionText, keyboard);
   }
 }

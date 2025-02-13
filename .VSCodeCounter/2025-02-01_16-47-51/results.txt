@@ -173,7 +173,7 @@ Files
 | c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\handleStart.ts                           | TypeScript |         46 |          0 |         11 |         57 |
 | c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\handleWarningTest.ts                     | TypeScript |         25 |          3 |          2 |         30 |
 | c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\payment\handlePayment.ts                 | TypeScript |         41 |          4 |          4 |         49 |
-| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\payment\handleTestPay.ts                 | TypeScript |         75 |          0 |          3 |         78 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\payment\handleFreePay.ts                 | TypeScript |         75 |          0 |          3 |         78 |
 | c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\promo\handleEnterPromoCode.ts            | TypeScript |         30 |          0 |          4 |         34 |
 | c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\promo\handlePromoList.ts                 | TypeScript |         41 |         19 |          5 |         65 |
 | c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\promo\handlePromotion.ts                 | TypeScript |         86 |          0 |          9 |         95 |

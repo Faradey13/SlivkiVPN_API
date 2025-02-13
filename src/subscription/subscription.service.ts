@@ -49,17 +49,23 @@ export class SubscriptionService implements OnModuleInit {
     const cacheKey = `user_subscription_${userId}`;
     try {
       this.logger.info(`Запрос подписки для пользователя: ${userId}`);
-      const cachedSubscription = (await this.cacheManager.get(cacheKey)) as subscription | null;
-      if (cachedSubscription && cachedSubscription.subscription_status) {
-        this.logger.info(`Подписка для пользователя ${userId} найдена в кэше`);
-        console.log(cachedSubscription.subscription_status);
-        return cachedSubscription;
+      const cachedSubscription: subscription = await this.cacheManager.get(cacheKey);
+      if (cachedSubscription) {
+        const normalizedSubscription: subscription = {
+          ...cachedSubscription,
+          subscription_start: new Date(cachedSubscription.subscription_start),
+          subscription_end: new Date(cachedSubscription.subscription_end),
+          subscription_status: Boolean(cachedSubscription.subscription_status),
+        };
+        if (normalizedSubscription.subscription_status) {
+          this.logger.info(`Подписка для пользователя ${userId} найдена в кэше`);
+          return normalizedSubscription;
+        }
       }
       const subscription = await this.prisma.subscription.findUnique({ where: { user_id: userId } });
       if (subscription && subscription.subscription_status) {
         await this.cacheManager.set(cacheKey, subscription);
         this.logger.info(`Подписка пользователя ${userId} загружена из базы и сохранена в кэше`);
-        console.log(subscription.subscription_status);
         return subscription;
       }
     } catch (error) {

@@ -4,6 +4,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../../user/user.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PinoLogger } from 'nestjs-pino';
+import { SubscriptionService } from '../../subscription/subscription.service';
+import { StartKeyboards, StartTexts } from '../text&buttons/text&buttons';
 
 @Injectable()
 @Update()
@@ -12,6 +14,7 @@ export class StartHandler {
     private readonly logger: PinoLogger,
     private readonly userService: UserService,
     private readonly prisma: PrismaService,
+    private readonly subscriptionService: SubscriptionService,
   ) {
     this.logger.setContext(StartHandler.name);
   }
@@ -21,8 +24,10 @@ export class StartHandler {
   async handleStart(@Ctx() ctx: Context) {
     const userId = ctx.from.id;
     const nameTg = ctx.from.username;
+    let subscription;
     const user = await this.userService.getUserByTgId(userId);
     this.logger.info(`Телеграм бот запущен для пользователя: ${userId}`);
+    if (user) subscription = await this.subscriptionService.getUserSubscription(user.id);
     if (!user) {
       this.logger.info(`Пользователь ${userId} не зарегестрирован, создаем запись`);
       try {
@@ -32,36 +37,34 @@ export class StartHandler {
           data: { is_activated: true, telegram_name: nameTg },
         });
         this.logger.info(`Пользователь ${userId} зарегестрирован`);
+        subscription = await this.subscriptionService.getUserSubscription(newUser.id);
       } catch (error) {
         this.logger.error(`ошибка создания учетной записи для ${userId} `);
         throw new UnauthorizedException(error.message);
       }
     }
+    if (subscription) {
+      const today = new Date();
+      const subscriptionEnd = subscription.subscription_end.toISOString().split('T')[0];
+      const diffInTime = subscription.subscription_end.getTime() - today.getTime();
+      const days_left = Math.ceil(diffInTime / (1000 * 60 * 60 * 24));
+      const startTextForSub = StartTexts.startWithSub(subscriptionEnd, days_left);
+      const keyboardForSub = StartKeyboards.withSubscription;
+      try {
+        await ctx.editMessageText(startTextForSub, keyboardForSub);
+      } catch {
+        await ctx.reply(startTextForSub, keyboardForSub);
+      }
+    } else {
+      const startText = StartTexts.startWithoutSub;
 
-    const startText = `
-Мы предлагаем надежный и быстрый VPN без ограничений по трафику, скорости и количеству подключенных устройств!
+      const keyboard = StartKeyboards.withoutSubscription;
 
-📝 Нажмите кнопку "Подписка", чтобы оформить новую или узнать информацию о текущей подписке и получить ключ подключения к VPN.
-
-🎫 Нажмите кнопку "Ввести промокод", тут вы можете активировать промокод и посмотреть информацию о добавленных.
-
-🎁 В разделе "Пригласить друга" вы найдете реферальный код, за каждого друга выполучаете месяц подписки на сервис.
-
-❓ Если у вас есть вопросы, просто нажмите "Помощь" — возможно, мы уже ответили на них.
-    `;
-
-    const keyboard = Markup.inlineKeyboard([
-      [Markup.button.callback('📝 Подписка', 'subscribe')],
-      [Markup.button.callback('🎫 Промокоды', 'promotion')],
-      [Markup.button.callback('🎁 Пригласить друга', 'referral')],
-      [Markup.button.callback('❓ Помощь', 'help')],
-      [Markup.button.callback('❓ test', 'warning_test')],
-    ]);
-
-    try {
-      await ctx.editMessageText(startText, keyboard);
-    } catch {
-      await ctx.reply(startText, keyboard);
+      try {
+        await ctx.editMessageText(startText, keyboard);
+      } catch {
+        await ctx.reply(startText, keyboard);
+      }
     }
   }
 }

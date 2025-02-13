@@ -13,6 +13,7 @@ import { ReferralService } from '../referral/referral.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PinoLogger } from 'nestjs-pino';
+import { a } from 'pino-loki/shared/pino-loki.7752179f';
 
 @Injectable()
 export class PromoService {
@@ -24,6 +25,7 @@ export class PromoService {
   ) {
     this.logger.setContext(PromoService.name);
   }
+
   generatePromoCode(dto: generatePromoCodeDto) {
     this.logger.info('Генерация нового промокода');
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -191,6 +193,44 @@ export class PromoService {
     }
   }
 
+  async getActivePromoCode(userId: number) {
+    this.logger.info('Поиск уникального активного промокода');
+    const activeCodes = await this.prisma.user_promocodes.findMany({
+      where: { user_id: userId, is_active: true },
+    });
+    if (activeCodes.length === 0) return null;
+    if (activeCodes.length === 1) return this.getPromoCodeById(activeCodes.at(0).code_id);
+    const [firstCode, ...otherCodes] = activeCodes;
+
+    await this.prisma.$transaction([
+      this.prisma.user_promocodes.updateMany({
+        where: {
+          id: { in: otherCodes.map((code) => code.id) },
+          is_active: true,
+        },
+        data: { is_active: false },
+      }),
+      this.prisma.user_promocodes.update({
+        where: { id: firstCode.id },
+        data: { is_active: true },
+      }),
+    ]);
+
+    return this.getPromoCodeById(firstCode.id);
+  }
+
+  async getNoActivePromoCode(userId: number) {
+    try {
+      const userPromoCodesNotActive = await this.prisma.promo_codes.findMany({
+        where: { user_promocodes: { some: { user_id: userId, is_active: false, isUsed: false } } },
+      });
+      this.logger.info(`Для пользователя ${userId} найдены не активные промокоды`);
+      return userPromoCodesNotActive;
+    } catch {
+      this.logger.error(`Ошибка поиска не активных промокодов для полльзователя ${userId}`);
+    }
+  }
+
   async getPromoCodeById(codeId: number): Promise<promo_codes> {
     this.logger.info(`Поиск промокода по ID: ${codeId}`);
     try {
@@ -198,7 +238,12 @@ export class PromoService {
       const cachePromoCode = (await this.cacheManager.get(cacheKey)) as promo_codes | null;
       if (cachePromoCode) {
         this.logger.info(`Промокод ${codeId} найден в кэше`);
-        return cachePromoCode;
+        const normalizeCode: promo_codes = {
+          ...cachePromoCode,
+          created_at: new Date(cachePromoCode.created_at),
+          period: Number(cachePromoCode.period),
+        };
+        return normalizeCode;
       }
       const promoCode = await this.prisma.promo_codes.findUnique({ where: { id: codeId } });
       if (promoCode) {

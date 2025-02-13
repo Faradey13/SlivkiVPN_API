@@ -1,17 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { OutlineVPN } from 'outlinevpn-api';
 import { PrismaService } from '../prisma/prisma.service';
 import * as process from 'node:process';
 import { createKeyDto, removeKeyDto } from './dto/outline.dto';
 import { RegionService } from '../region/region.service';
 import { PinoLogger } from 'nestjs-pino';
+import { vpn_keys } from '@prisma/client';
+import { a } from 'pino-loki/shared/pino-loki.7752179f';
 
 @Injectable()
 export class OutlineVpnService {
   constructor(
+    @Inject(forwardRef(() => RegionService))
+    private readonly region: RegionService,
     private readonly logger: PinoLogger,
     private readonly prisma: PrismaService,
-    private readonly region: RegionService,
   ) {
     this.logger.setContext(OutlineVpnService.name);
   }
@@ -142,12 +145,60 @@ export class OutlineVpnService {
     }
   }
 
-  async getAllKeys() {
+  async setActiveKey(userId: number, regionId: number) {
+    try {
+      this.logger.info(
+        `Попытка изменить активный ключ для пользователя ID: ${userId} и регион ID: ${regionId}`,
+      );
+      const newActiveKey = await this.prisma.vpn_keys.findFirst({
+        where: { user_id: userId, region_id: regionId },
+      });
+      if (!newActiveKey) {
+        this.logger.error(`Для пользователя ID: ${userId} не найден ключ в регионе ID: ${regionId}`);
+        return;
+      }
+      const allKeys = await this.getAllUsersKeys(userId);
+      const filteredKeys = allKeys.filter((key) => key.id !== newActiveKey.id);
+      await this.prisma.$transaction([
+        this.prisma.vpn_keys.updateMany({
+          where: {
+            id: { in: filteredKeys.map((key) => key.id) },
+          },
+          data: { is_active: false },
+        }),
+        this.prisma.vpn_keys.update({
+          where: { id: newActiveKey.id },
+          data: { is_active: true },
+        }),
+      ]);
+
+      this.logger.info(`Ключ активно изменен ID: ${newActiveKey.id} для пользователя ID: ${userId}`);
+    } catch (error) {
+      this.logger.error(
+        `ОШбика изменения активного ключа для пользователя ID: ${userId} в регионе ID: ${regionId}:`,
+        error,
+      );
+    }
+  }
+
+  async getAllKeys(): Promise<vpn_keys[]> {
     this.logger.info(`Запрос на получение всех ключей VPN`);
     try {
       return this.prisma.vpn_keys.findMany();
     } catch (error) {
       this.logger.error(`Ошибка при получении всех ключей VPN: ${error.message}`);
+      throw new Error(`Error in getAllKeys: ${error.message}`);
+    }
+  }
+
+  async getAllUsersKeys(userId: number): Promise<vpn_keys[]> {
+    this.logger.info(`Запрос на получение всех ключей VPN для пользователя ID: ${userId}`);
+    try {
+      return this.prisma.vpn_keys.findMany({ where: { user_id: userId } });
+    } catch (error) {
+      this.logger.error(
+        `Ошибка при получении всех ключей VPN: ${error.message} для пользователяID: ${userId}`,
+      );
       throw new Error(`Error in getAllKeys: ${error.message}`);
     }
   }

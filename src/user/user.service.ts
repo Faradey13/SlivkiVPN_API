@@ -30,9 +30,7 @@ export class UserService {
   }
 
   async createUser(dto: createUserDto): Promise<UserWithRoles> {
-    this.logger.info(
-      `Процесс создания пользователя начат для: ${dto.email ? dto.email : dto.telegram_user_id}`,
-    );
+    this.logger.info(`Процесс создания пользователя начат для: ${dto.email ? dto.email : dto.telegram_user_id}`);
 
     if (!dto.email && !dto.telegram_user_id) {
       this.logger.error('Ошибка валидации: Не указан email или telegram_user_id');
@@ -102,6 +100,8 @@ export class UserService {
           },
         });
         this.logger.info(`Запись в таблице free_subscription создана для пользователя с ID: ${user.id}`);
+        await this.prisma.user_protocol.create({ data: { user_id: user.id } });
+        this.logger.info(`Запись в таблице user_protocol создана для пользователя с ID: ${user.id}`);
       });
     } catch (error) {
       this.logger.error('Ошибка транзакции:', error);
@@ -116,9 +116,7 @@ export class UserService {
   }
 
   async findOrCreateUser(dto: createUserDto): Promise<{ user: UserWithRoles; isExisting: boolean }> {
-    this.logger.info(
-      `Поиск или создание нового пользователя ${dto.email ? dto.email : dto.telegram_user_id}`,
-    );
+    this.logger.info(`Поиск или создание нового пользователя ${dto.email ? dto.email : dto.telegram_user_id}`);
     try {
       const existingUser = await this.getUserByEmail(dto.email);
       const existingTgUser = await this.getUserByTgId(dto.telegram_user_id);

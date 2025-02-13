@@ -2,17 +2,25 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ReferralService } from '../referral/referral.service';
 import { PromoService } from '../promo/promo.service';
-import { CurrencyEnum, PaymentCreateRequest, PaymentMethodsEnum, YookassaService } from 'nestjs-yookassa';
+import {
+  CurrencyEnum,
+  PaymentCreateRequest,
+  PaymentDetails,
+  PaymentMethodsEnum,
+  YookassaService,
+} from 'nestjs-yookassa';
 import { SubscriptionService } from '../subscription/subscription.service';
 import {
   currentPromoDto,
+  MetadataDto,
   paymentDataDto,
-  PaymentResponseDto,
+  PaymentMethodDto,
   preparingPaymentDataDto,
 } from './dto/payment.dto';
 import * as process from 'node:process';
 import { SubscriptionPlanService } from '../subscription/subscription-plan.service';
 import { PinoLogger } from 'nestjs-pino';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class PaymentService {
@@ -34,11 +42,12 @@ export class PaymentService {
     return amount - discount;
   }
 
-  async createPayment(dto: preparingPaymentDataDto) {
+  async createPayment(dto: preparingPaymentDataDto): Promise<PaymentDetails> {
     this.logger.info(`Начало создания платежа для пользователя с ID ${dto.userId}`);
     const preparedData = await this.preparingPaymentData({
       userId: dto.userId,
       planId: dto.planId,
+      payId: dto.payId,
     });
     const paymentData: PaymentCreateRequest = {
       amount: {
@@ -49,10 +58,9 @@ export class PaymentService {
       payment_method_data: {
         type: PaymentMethodsEnum.yoo_money,
       },
-      capture: false,
       confirmation: {
         type: 'redirect',
-        return_url: 'https://example.com/thanks',
+        return_url: 'https://yandex.ru',
       },
       metadata: {
         user_id: preparedData.user_id,
@@ -67,7 +75,7 @@ export class PaymentService {
     try {
       const newPayment = await this.yookassaService.createPayment(paymentData);
       this.logger.info('Платеж успешно создан с ID:', newPayment.id);
-      return newPayment.id;
+      return newPayment;
     } catch (error) {
       this.logger.info({
         message: `Ошибка при создании платежа для пользователя ${dto.userId}`,
@@ -76,41 +84,65 @@ export class PaymentService {
     }
   }
 
-  async capturePayment(paymentId: string) {
-    this.logger.info({
-      message: `Попытка поиска платежа с ID: ${paymentId}`,
-    });
-    const capturedPayment = await this.yookassaService.capturePayment(paymentId);
-    this.logger.info(`Платеж с ID ${paymentId} успешно найден`);
-    return capturedPayment;
+  async capturePayment(paymentId: string): Promise<PaymentDetails> {
+    try {
+      this.logger.info(`Попытка захвата платежа с ID: ${paymentId}`);
+      const paymentDetails = await this.yookassaService.capturePayment(paymentId);
+      this.logger.info(`Платеж с ID: ${paymentId} успешно захвачен.`);
+
+      return paymentDetails;
+    } catch (error) {
+      this.logger.error(`Ошибка при захвате платежа с ID: ${paymentId}. Ошибка: ${error.message}`);
+      throw new Error(`Не удалось захватить платеж с ID: ${paymentId}`);
+    }
   }
 
-  async onSuccessPayment(dto: PaymentResponseDto) {
-    this.logger.info(
-      `Начало обработки успешного платежа: ${dto.id} для пользователя ${dto.metadata.user_id}`,
-    );
+  async getPaymentDetails(paymentId: string) {
+    try {
+      this.logger.info({
+        message: `Попытка поиска платежа с ID: ${paymentId}`,
+      });
+
+      const infoPayment = await this.yookassaService.getPaymentDetails(paymentId);
+      this.logger.info(`Платеж с ID ${paymentId} успешно найден`);
+      return infoPayment.status;
+    } catch (error) {
+      this.logger.error({
+        message: `Ошибка при поиске платежа с ID: ${paymentId}`,
+        error: error instanceof Error ? error.message : error,
+      });
+      throw error;
+    }
+  }
+
+  async onSuccessPayment(dto: PaymentDetails) {
+    const metadata = plainToInstance(MetadataDto, dto.metadata);
+    const payment_method = plainToInstance(PaymentMethodDto, dto.payment_method);
+    this.logger.info(`Начало обработки успешного платежа: ${dto.id} для пользователя ${metadata.user_id}`);
 
     try {
-      const plan = await this.subscriptionPlans.getSubscriptionPlanById(Number(dto.metadata.plan_id));
-      this.logger.info(`Получен тарифный план ${plan.name} с ID:${dto.metadata.promo_id}`);
+      const plan = await this.subscriptionPlans.getSubscriptionPlanById(Number(metadata.plan_id));
+      this.logger.info(
+        `Получен тарифный план ${plan.name} с ID:${plan.id} для пользователя ${metadata.user_id}`,
+      );
 
       if (!plan) {
-        this.logger.error('Тарифный план с ID не найден', dto.metadata.plan_id);
-        throw new Error(`Тарифный план с ID ${dto.metadata.plan_id} не найден`);
+        this.logger.error(
+          `Тарифный план с ID ${metadata.plan_id} не найден для пользователя ${metadata.user_id} `,
+        );
+        throw new Error(`Тарифный план с ID ${metadata.plan_id} не найден`);
       }
-      const userId = Number(dto.metadata.user_id);
-      this.logger.info('Идентификатор пользователя:', userId);
-
-      this.logger.info(`Обрабатываем promo_id: ${dto.metadata.promo_id}`);
+      const userId = Number(metadata.user_id);
+      this.logger.info(`Идентификатор пользователя: ${userId}`);
+      this.logger.info(`Обрабатываем promo_id: ${metadata.promo_id}`);
       let promoId: number | null = null;
 
-      if (dto.metadata.promo_id && dto.metadata.promo_id !== 'undefined') {
-        promoId = Number(dto.metadata.promo_id);
+      if (metadata.promo_id && metadata.promo_id !== 'undefined') {
+        promoId = Number(metadata.promo_id);
         if (isNaN(promoId)) {
           promoId = null;
         }
       }
-
       if (promoId !== null) {
         const referral_user = await this.prisma.referral_user.findUnique({ where: { id: userId } });
         const promoCode = await this.ReferralService.getUsersRefCode(userId);
@@ -183,13 +215,13 @@ export class PaymentService {
       await this.prisma.payment.create({
         data: {
           user_id: userId,
-          payment_id: dto.payment_method.id,
+          payment_id: dto.id,
           amount: Number(dto.amount.value),
           plan_id: plan.id,
           processed: true,
           status: dto.status,
           message_id: 1,
-          promo_code_id: promoId,
+          promo_code_id: promoId ? promoId : null,
           subscription_period: plan.period,
         },
       });
@@ -216,7 +248,7 @@ export class PaymentService {
     } catch (error) {
       this.logger.error(
         'Ошибка при обработке успешного платежа для пользователя:',
-        dto.metadata.user_id,
+        metadata.user_id,
         error.message,
       );
       throw error;
@@ -225,62 +257,48 @@ export class PaymentService {
 
   async getCurrentPromoCode(userId: number): Promise<currentPromoDto> {
     this.logger.info('Получение текущего промокода для пользователя', userId);
-    const referral = await this.ReferralService.getUserReferral(userId);
-    if (!referral.isUsed && referral.code_in_id) {
-      const refPromo = await this.prisma.promo_codes.findUnique({
-        where: { id: referral.code_in_id },
-      });
-      const findRefUser = await this.prisma.referral_user.findFirst({
-        where: { code_out_id: refPromo.id },
-      });
-      if (!findRefUser) {
-        await this.prisma.referral_user.update({
-          where: { user_id: userId },
-          data: { code_in_id: null },
-        });
-        this.logger.warn('Реферальный код для пользователя аннулирован, новый код может быть введён', userId);
-        return {
-          codeId: undefined,
-          discount: 0,
-          message:
-            'Пользователь выдавший реферальный код заблокирован, скидка применена не будет. Вы можете ввести новый код',
-        };
-      }
-      const invitingUser = await this.prisma.user.findUnique({
-        where: { id: findRefUser.user_id },
-      });
-      if (!invitingUser || invitingUser.is_banned) {
-        await this.prisma.referral_user.update({
-          where: { user_id: userId },
-          data: { code_in_id: null },
-        });
-        this.logger.info(
-          'Приглашающий пользователь заблокирован, реферальный код для пользователя аннулирован',
-          userId,
-        );
-        return {
-          codeId: undefined,
-          discount: 0,
-          message:
-            'Пользователь выдавший реферальный код заблокирован, скидка применена не будет. Вы можете ввести новый код',
-        };
-      }
-      if (refPromo) {
-        this.logger.info('Найден действующий промокод для пользователя', userId);
-        return { codeId: refPromo.id, discount: refPromo.discount };
-      }
+
+    const promoCode = await this.PromoService.getActivePromoCode(userId);
+    if (promoCode) {
+      this.logger.info(`Промокод ID:${promoCode.id} для пользователя: ID ${userId}`);
+      return { codeId: promoCode.id, discount: promoCode.discount, code: promoCode };
     }
 
-    const promoCode = await this.prisma.user_promocodes.findFirst({
-      where: { user_id: userId, is_active: true },
-    });
-    if (!promoCode) {
-      this.logger.info('Промокод для пользователя нет кодов, либо они не активны', userId);
+    const referral = await this.ReferralService.getUserReferral(userId);
+    if (!referral || referral.isUsed || !referral.code_in_id) {
       return { codeId: undefined, discount: 0 };
     }
-    const currentCode = await this.PromoService.getPromoCodeById(promoCode.code_id);
-    this.logger.info('Текущий промокод для пользователя', userId, currentCode);
-    return { codeId: currentCode.id, discount: currentCode.discount };
+
+    const [refPromo, findRefUser] = await Promise.all([
+      this.prisma.promo_codes.findUnique({ where: { id: referral.code_in_id } }),
+      this.prisma.referral_user.findFirst({ where: { code_out_id: referral.code_in_id } }),
+    ]);
+
+    if (!findRefUser) {
+      await this.prisma.referral_user.update({
+        where: { user_id: userId },
+        data: { code_in_id: null },
+      });
+      this.logger.warn(`Реферальный код пользователя ${userId} аннулирован`);
+      return { codeId: undefined, discount: 0, message: 'Реферальный код недействителен, введите новый' };
+    }
+
+    const invitingUser = await this.prisma.user.findUnique({ where: { id: findRefUser.user_id } });
+    if (!invitingUser || invitingUser.is_banned) {
+      await this.prisma.referral_user.update({
+        where: { user_id: userId },
+        data: { code_in_id: null },
+      });
+      this.logger.warn(`Приглашающий пользователь ${findRefUser.user_id} заблокирован`);
+      return {
+        codeId: undefined,
+        discount: 0,
+        message: 'Приглашающий пользователь заблокирован, скидка не применяется',
+      };
+    }
+
+    this.logger.info(`Найден реферальный код ID:${refPromo.id} для пользователя ID:${userId}`);
+    return { codeId: refPromo.id, discount: refPromo.discount, code: refPromo };
   }
 
   async preparingPaymentData(dto: preparingPaymentDataDto): Promise<paymentDataDto> {

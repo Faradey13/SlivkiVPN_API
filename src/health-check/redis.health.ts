@@ -11,7 +11,6 @@ export class RedisHealthIndicator {
 
   async isHealthy(): Promise<HealthIndicatorResult> {
     try {
-
       const pong = await this.redis.ping();
       const isHealthy = pong === 'PONG';
 

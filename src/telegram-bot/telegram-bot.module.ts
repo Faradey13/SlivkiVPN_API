@@ -10,7 +10,7 @@ import * as process from 'node:process';
 import { OutlineVpnModule } from '../outline-vpn/outline-vpn.module';
 import { ReferralModule } from '../referral/referral.module';
 import { PaymentHandler } from './handlers/payment/handlePayment';
-import { PaymentTestHandler } from './handlers/payment/handleTestPay';
+
 import { ReferralHandlers } from './handlers/referral/handleReferral';
 import { ExtendSubscriptionHandler } from './handlers/subscription/handleExtendSubscription';
 import { SubscriptionHandler } from './handlers/subscription/handleSubscribe';
@@ -31,12 +31,15 @@ import { SetActiveHandler } from './handlers/promo/handleSetaActive';
 import { EnterPromoCodeHandler } from './handlers/promo/handleEnterPromoCode';
 import { StatisticModule } from '../statistic/statistic.module';
 import { RegionModule } from '../region/region.module';
+import { VpnMenuHandler } from './handlers/VPN/handleVpnMenu';
+import { PaymentConfirmHandler } from './handlers/payment/handleConfirmPayment';
+import { PaymentFreeHandler } from './handlers/payment/handleFreePay';
 
 @Module({
   providers: [
     TelegramBotUtils,
     PaymentHandler,
-    PaymentTestHandler,
+    PaymentFreeHandler,
     ReferralHandlers,
     ExtendSubscriptionHandler,
     SubscriptionHandler,
@@ -53,8 +56,9 @@ import { RegionModule } from '../region/region.module';
     EnterPromoCodeHandler,
     PromotionHandler,
     PromoListHandler,
-    PaymentTestHandler,
     SetActiveHandler,
+    VpnMenuHandler,
+    PaymentConfirmHandler,
   ],
   imports: [
     TelegrafModule.forRootAsync({

@@ -10,7 +10,7 @@ export class BotController implements OnModuleInit {
   }
   async onModuleInit() {
     try {
-      await this.bot.telegram.setWebhook('https://slivkivpn-faradey13.amvera.io/webhook');
+      await this.bot.telegram.setWebhook(`${process.env.BASE_URL}/webhook`);
       console.log('Webhook set successfully!');
     } catch (error) {
       console.error('Error setting webhook:', error);

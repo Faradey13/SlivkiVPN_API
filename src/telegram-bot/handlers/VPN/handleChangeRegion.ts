@@ -1,33 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
-import { Context, Markup } from 'telegraf';
-import { TelegramBotUtils } from '../../telegram-bot.utils';
-import { RegionService } from '../../../region/region.service';
+import { Context } from 'telegraf';
 import { PinoLogger } from 'nestjs-pino';
 import { UserService } from '../../../user/user.service';
+import { OutlineVpnService } from '../../../outline-vpn/outline-vpn.service';
+import { GetKeyHandler } from './handleGetKey';
 
 @Injectable()
 @Update()
 export class ChangeRegionHandler {
   constructor(
-    private readonly botUtils: TelegramBotUtils,
-    private readonly region: RegionService,
+    private readonly outline: OutlineVpnService,
     private readonly userService: UserService,
     private readonly logger: PinoLogger,
+    private readonly GetKeyHandler: GetKeyHandler,
   ) {
     this.logger.setContext(ChangeRegionHandler.name);
   }
-  @Action('select_region')
+  @Action(/^change_region:(\d+)$/)
   async handleChangeRegion(@Ctx() ctx: Context) {
+    if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) {
+      return;
+    }
+    const callbackData = ctx.callbackQuery.data as string;
+    const regionId = parseInt(callbackData.split(':')[1]);
     const user = await this.userService.getUserByTgId(ctx.from.id);
-    this.logger.info(`Пользователь ID: ${user.id} зашел на страницу выбора региона для VPN`);
-    const regions = await this.region.getAllRegions();
-    const buttons = regions.map((region) =>
-      Markup.button.callback(`${region.flag} ${region.region_name}`, `get_vpn_key:${region.id}`),
-    );
-    buttons.push(Markup.button.callback('⬅️ Назад', 'subscribe'));
-    const groupedButtons = this.botUtils.chunkArray(buttons, 1);
-    const keyboard = Markup.inlineKeyboard(groupedButtons);
-    await ctx.editMessageText('Выберете регион:', keyboard);
+    this.logger.info(`Пользователь ID: ${user.id} зашел на страницу смены региона для VPN`);
+    await this.outline.setActiveKey(user.id, regionId);
+    await this.GetKeyHandler.handleGetKey(ctx);
   }
 }

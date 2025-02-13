@@ -4,6 +4,7 @@ import { Context, Markup } from 'telegraf';
 import { UserService } from '../../../user/user.service';
 import { SubscriptionService } from '../../../subscription/subscription.service';
 import { PinoLogger } from 'nestjs-pino';
+import { Subscription } from '../../text&buttons/text&buttons';
 
 @Injectable()
 @Update()
@@ -32,47 +33,13 @@ export class SubscriptionHandler {
       const diffInTime = subscription.subscription_end.getTime() - today.getTime();
       const days_left = Math.ceil(diffInTime / (1000 * 60 * 60 * 24));
 
-      const activeSubMenuText = `
-🗓 Ваша подписка действительна до ${subscriptionEnd}.
-
-Оставшееся кол-во дней подписки: ${days_left} дней.
-
-🔑 Вы можете получить ключ по умолчанию для региона «Германия», 
-нажав кнопку 'Получить ключ'.
-
-🌍 Если вы хотите выбрать ключ для другого региона, воспользуйтесь 
-кнопкой 'Выбрать регион'.
-
-🔙 Также вы можете вернуться в главное меню.
-      `;
-
-      const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('🔄 Продлить подписку', 'extend_subscription')],
-        [Markup.button.callback('🔑 Получить ключ', 'get_key')],
-        [Markup.button.callback('🌍 Выбрать регион', 'select_region')],
-        [Markup.button.callback('📺 Ключ для Смарт ТВ', 'smart_tv_key')],
-        [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
-      ]);
-
-      await ctx.editMessageText(activeSubMenuText, keyboard);
+      await ctx.editMessageText(
+        Subscription.activeSubMenuText(subscriptionEnd, days_left),
+        Subscription.activeSubMenuKeyboard(),
+      );
     } else {
       this.logger.info(`У пользователя ID: ${user.id} нет активной подписки`);
-      const newSubMenuText = `
-У вас пока нет активной подписки. Оформите подписку, чтобы получить доступ к ключу.
-
-Если с вами поделились реферальным кодом, укажите его для получения скидки,
-перейдя в раздел 'Указать реферальный код'
-      `;
-
-      const keyboard = Markup.inlineKeyboard([
-        [Markup.button.callback('📝 Оформить подписку', 'extend_subscription')],
-        [Markup.button.callback('🔑 Получить ключ', 'get_key')],
-        [Markup.button.callback('🌍 Выбрать регион', 'select_region')],
-        [Markup.button.callback('📺 Ключ для Смарт ТВ', 'smart_tv_key')],
-        [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
-      ]);
-
-      await ctx.editMessageText(newSubMenuText, keyboard);
+      await ctx.editMessageText(Subscription.noSubMenuText(), Subscription.noSubMenuKeyboard());
     }
   }
 }

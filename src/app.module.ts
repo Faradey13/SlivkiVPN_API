@@ -22,6 +22,7 @@ import moment from 'moment-timezone';
 import { BullModule } from '@nestjs/bullmq';
 import { EmailModule } from './email/email.module';
 import { HealthCheckModule } from './health-check/health-check.module';
+import { VlessVpnModule } from './vless-vpn/vless-vpn.module';
 
 @Module({
   imports: [
@@ -98,6 +99,7 @@ import { HealthCheckModule } from './health-check/health-check.module';
     }),
     EmailModule,
     HealthCheckModule,
+    VlessVpnModule,
   ],
   controllers: [],
   providers: [],

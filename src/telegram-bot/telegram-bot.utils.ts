@@ -5,8 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class TelegramBotUtils {
-  constructor(private readonly prisma: PrismaService) {
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   async convertOutlineToJson(key: string, userId: number, outputFile = null) {
     key = key.replace('ss://', '');
@@ -68,10 +67,26 @@ export class TelegramBotUtils {
       return resultArray;
     }, []);
 
-  daysUntilEnd(startDate: Date, periodInDays: number): number {
+  daysUntilEnd(startDate: any, periodInDays: number): number {
+    if (!(startDate instanceof Date)) {
+      startDate = new Date(startDate);
+    }
+
+    if (isNaN(startDate.getTime())) {
+      throw new Error('Некорректная дата startDate');
+    }
+
     const now = new Date();
     const endDate = new Date(startDate.getTime() + periodInDays * 24 * 60 * 60 * 1000);
     const diffInMs = endDate.getTime() - now.getTime();
-    return Math.max(Math.ceil(diffInMs / (1000 * 60 * 60 * 24)), 0);
+    return Math.max(Math.ceil(diffInMs / (1000 * 60 * 60 * 24)), 0); // Возвращаем остаток дней, но не меньше 0
+  }
+
+  strikethrough(text: any): string {
+    const stringText = String(text);
+    return stringText
+      .split('')
+      .map((char) => char + '\u0336')
+      .join('');
   }
 }

@@ -98,7 +98,7 @@ Total : 123 files,  4516 codes, 686 comments, 672 blanks, all 5874 lines
 | [src/telegram-bot/handlers/handleStart.ts](/src/telegram-bot/handlers/handleStart.ts) | TypeScript | 46 | 0 | 11 | 57 |
 | [src/telegram-bot/handlers/handleWarningTest.ts](/src/telegram-bot/handlers/handleWarningTest.ts) | TypeScript | 25 | 3 | 2 | 30 |
 | [src/telegram-bot/handlers/payment/handlePayment.ts](/src/telegram-bot/handlers/payment/handlePayment.ts) | TypeScript | 41 | 4 | 4 | 49 |
-| [src/telegram-bot/handlers/payment/handleTestPay.ts](/src/telegram-bot/handlers/payment/handleTestPay.ts) | TypeScript | 75 | 0 | 3 | 78 |
+| [src/telegram-bot/handlers/payment/handleFreePay.ts](/src/telegram-bot/handlers/payment/handleFreePay.ts) | TypeScript | 75 | 0 | 3 | 78 |
 | [src/telegram-bot/handlers/promo/handleEnterPromoCode.ts](/src/telegram-bot/handlers/promo/handleEnterPromoCode.ts) | TypeScript | 30 | 0 | 4 | 34 |
 | [src/telegram-bot/handlers/promo/handlePromoList.ts](/src/telegram-bot/handlers/promo/handlePromoList.ts) | TypeScript | 41 | 19 | 5 | 65 |
 | [src/telegram-bot/handlers/promo/handlePromotion.ts](/src/telegram-bot/handlers/promo/handlePromotion.ts) | TypeScript | 86 | 0 | 9 | 95 |

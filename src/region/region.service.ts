@@ -1,19 +1,33 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { region } from '@prisma/client';
+import { region, subscription } from '@prisma/client';
 import { createRegionDto } from './dto/regionDto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PinoLogger } from 'nestjs-pino';
+import { SubscriptionService } from '../subscription/subscription.service';
+import { OutlineVpnService } from '../outline-vpn/outline-vpn.service';
 
 @Injectable()
 export class RegionService {
   constructor(
     private readonly logger: PinoLogger,
     private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => OutlineVpnService))
+    private readonly OutlineService: OutlineVpnService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.logger.setContext(RegionService.name);
+  }
+  async getUsersWithSubscriptions(): Promise<subscription[]> {
+    try {
+      this.logger.info(`Поиск всех активных подпискок пользователей`);
+      const activeSub = await this.prisma.subscription.findMany({ where: { subscription_status: true } });
+      this.logger.info(`Найдено : ${activeSub.length} активных подписок`);
+      return activeSub;
+    } catch (error) {
+      this.logger.error(`Ошибка получения активных подписок: ${error.message}`);
+    }
   }
 
   async createRegion(dto: createRegionDto): Promise<region> {
@@ -21,6 +35,14 @@ export class RegionService {
       this.logger.info(`Создание нового региона: ${dto.region_name}`);
       const region = await this.prisma.region.create({ data: dto });
       this.logger.info(`Регион успешно создан: ${dto.region_name}`);
+      const activeUserSub = await this.getUsersWithSubscriptions();
+      this.logger.info(`Регион: ${dto.region_name} добваляем пользователям с активной подпиской`);
+      await Promise.all(
+        activeUserSub.map((user) =>
+          this.OutlineService.createKey({ regionId: region.id, userId: user.user_id }),
+        ),
+      );
+      this.logger.info(`Регион: ${dto.region_name} добваляен пользователям с активной подпиской`);
       return region;
     } catch (error) {
       this.logger.error(`Ошибка при создании региона: ${error.message}`);

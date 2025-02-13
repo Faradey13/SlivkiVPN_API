@@ -3,6 +3,7 @@ import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
 import { PinoLogger } from 'nestjs-pino';
 import { UserService } from '../../../user/user.service';
+import { keyboardPcOutline, textPcOutline } from '../../text&buttons/text&buttons';
 
 @Injectable()
 @Update()
@@ -17,22 +18,6 @@ export class OutlinePCHandler {
   async handleOutlinePC(@Ctx() ctx: Context) {
     const user = await this.userService.getUserByTgId(ctx.from.id);
     this.logger.info(`Пользователь ID: ${user.id} зашел на страницу скачивания клиента Outline для ПК`);
-    const text = 'Выберите версию для скачивания:';
-    const keyboard = Markup.inlineKeyboard([
-      [Markup.button.url('🍎 Mac', 'https://itunes.apple.com/app/outline-app/id1356178125')],
-      [
-        Markup.button.url(
-          '🪟 Windows',
-          'https://s3.amazonaws.com/outline-releases/client/windows/stable/Outline-Client.exe',
-        ),
-      ],
-      [
-        Markup.button.url(
-          '🐧 Linux',
-          'https://s3.amazonaws.com/outline-releases/client/linux/stable/Outline-Client.AppImage',
-        ),
-      ],
-    ]);
-    await ctx.editMessageText(text, keyboard);
+    await ctx.editMessageText(textPcOutline, keyboardPcOutline);
   }
 }

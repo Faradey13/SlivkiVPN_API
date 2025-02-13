@@ -7,6 +7,9 @@ import { SubscriptionService } from '../../../subscription/subscription.service'
 import { PaymentService } from '../../../payment/payment.service';
 import { SubscriptionPlanService } from '../../../subscription/subscription-plan.service';
 import { PinoLogger } from 'nestjs-pino';
+import { PromoService } from '../../../promo/promo.service';
+import { TelegramBotUtils } from '../../telegram-bot.utils';
+import { ExtendSubscription } from '../../text&buttons/text&buttons';
 
 @Injectable()
 @Update()
@@ -18,6 +21,8 @@ export class ExtendSubscriptionHandler {
     private readonly paymentService: PaymentService,
     private readonly subscriptionService: SubscriptionService,
     private readonly logger: PinoLogger,
+    private readonly promo: PromoService,
+    private readonly botUtils: TelegramBotUtils,
   ) {
     this.logger.setContext(ExtendSubscriptionHandler.name);
   }
@@ -32,24 +37,37 @@ export class ExtendSubscriptionHandler {
     const availableFree = isFree.isAvailable ? freePlans : [];
     const subscriptionPlans = [...regularPlans, ...availableFree];
     const subscription = await this.subscriptionService.getUserSubscription(user.id);
-
-    const discount = await this.paymentService.getCurrentPromoCode(user.id);
+    const userPromoCodesNotActive = await this.promo.getNoActivePromoCode(user.id);
+    const { discount, code } = await this.paymentService.getCurrentPromoCode(user.id);
     this.logger.info(`Пользователь ID: ${user.id} зашел на страницу продления или покупки подписки`);
     const buttons = subscriptionPlans.map((plan) => [
       Markup.button.callback(
-        `${plan.name}-${this.paymentService.applyDiscount(plan.price, !plan.isFree ? discount.discount : 0)}₽`,
-        `payment:${plan.id}`,
+        `${plan.name} - ${
+          (discount > 0 && code && code.type !== 'yearly') ||
+          (code && code.type === 'yearly' && plan.period === 365)
+            ? `${this.botUtils.strikethrough(plan.price)}₽ - `
+            : ''
+        }${this.paymentService.applyDiscount(
+          plan.price,
+          (!plan.isFree && code && code.type !== 'yearly') ||
+            (code && code.type === 'yearly' && plan.period === 365)
+            ? discount
+            : 0,
+        )}₽`,
+        `${isFree.isAvailable && plan.isFree ? `free_pay:${plan.id}` : `payment:${plan.id}`}`,
       ),
     ]);
-    buttons.push([Markup.button.callback('✍🏻 Добавить или активировать промокод', 'promotion')]);
-    buttons.push([Markup.button.callback('⬅️ Назад', 'subscribe')]);
+    buttons.push(ExtendSubscription.promoCodeButton());
+    if (!subscription?.subscription_status) {
+      buttons.push([Markup.button.callback('⬅️ Назад', 'subscribe')]);
+    }
+    buttons.push([Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')]);
     const keyboard = Markup.inlineKeyboard(buttons);
-
-    const message =
-      subscription?.subscription_status === true
-        ? 'Выберите срок продления подписки:'
-        : 'Выберите срок подписки:';
-
-    await ctx.editMessageText(message, keyboard);
+    if (code) {
+      await ctx.editMessageText(ExtendSubscription.purchaseText(code.type, discount, code.code), keyboard);
+    }
+    if (!code && userPromoCodesNotActive) {
+      await ctx.editMessageText(ExtendSubscription.purchaseNoPromoText(), keyboard);
+    }
   }
 }

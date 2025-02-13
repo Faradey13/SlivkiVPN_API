@@ -5,6 +5,8 @@ import { UserService } from '../../../user/user.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { RegionService } from '../../../region/region.service';
 import { PinoLogger } from 'nestjs-pino';
+import { TelegramBotUtils } from '../../telegram-bot.utils';
+import { GetVpnKey } from '../../text&buttons/text&buttons';
 
 @Injectable()
 @Update()
@@ -14,9 +16,11 @@ export class GetKeyHandler {
     private readonly prisma: PrismaService,
     private readonly region: RegionService,
     private readonly logger: PinoLogger,
+    private readonly botUtils: TelegramBotUtils,
   ) {
     this.logger.setContext(GetKeyHandler.name);
   }
+
   @Action('get_key')
   async handleGetKey(@Ctx() ctx: Context) {
     const user = await this.userService.getUserByTgId(ctx.from.id);
@@ -24,39 +28,21 @@ export class GetKeyHandler {
     const vpnKey = await this.prisma.vpn_keys.findFirst({
       where: { user_id: user.id, is_active: true },
     });
-    if (!vpnKey) {
-      this.logger.info(`У пользователь ID: ${user.id} нет ключа VPN`);
-      const keyboardNoKey = Markup.inlineKeyboard([
-        [Markup.button.callback('📝 В меню подписки', 'subscribe')],
-        [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
-      ]);
-      const textNoKey = `У вас нет подписки, ключ будет доступен после оформления подписки.
-        
-        Если вы оформили подписку, но ключ не отображается обратитесь в службу поддержки
-        `;
-      await ctx.editMessageText(textNoKey, keyboardNoKey);
-    }
     const region = await this.region.getRegionById(vpnKey.region_id);
     this.logger.info(`У пользователь ID: ${user.id} есть ключ VPN ID:${vpnKey.id}`);
-    const text = `
-Ваш активный ключ
-Регион - ${region.region_name} ${region.flag}
 
- <code><a href="tg://copy?text=${vpnKey.key}">${vpnKey.key}</a></code>
-
-Чтобы использовать его, откройте приложение Outline и нажмите на плюсик в верхнем правом углу.
-
-Для копирования ключа просто нажмите на него в сообщении.
-    `;
-
+    const regions = await this.region.getAllRegions();
+    const buttons = regions.map((region) =>
+      Markup.button.callback(`${region.flag} ${region.region_name}`, `change_region:${region.id}`),
+    );
+    const addButtons = GetVpnKey.buttons();
+    buttons.push(...addButtons.flat());
+    const groupedButtons = this.botUtils.chunkArray(buttons, 1);
     const keyboard = {
-      inline_keyboard: [
-        [Markup.button.callback('📱 Скачать Outline', 'download_outline')],
-        [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
-      ],
+      inline_keyboard: groupedButtons,
     };
 
-    await ctx.editMessageText(text, {
+    await ctx.editMessageText(GetVpnKey.text(region.region_name, region.flag, vpnKey.key), {
       parse_mode: 'HTML',
       reply_markup: keyboard,
     });
