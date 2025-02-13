@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
-import { Context, Markup } from 'telegraf';
+import { Context } from 'telegraf';
 import { UserService } from '../../../user/user.service';
 import { SubscriptionService } from '../../../subscription/subscription.service';
 import { PinoLogger } from 'nestjs-pino';
