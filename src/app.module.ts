@@ -1,28 +1,28 @@
+import { OutlineVpnModule } from './VPN/outline-vpn/outline-vpn.module';
 import { Module } from '@nestjs/common';
-import { UserModule } from './user/user.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { UserModule } from './user-account/user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { RoleModule } from './role/role.module';
-import { TokenModule } from './token/token.module';
-import { AuthModule } from './auth/auth.module';
-import { OutlineVpnModule } from './outline-vpn/outline-vpn.module';
-import { RegionModule } from './region/region.module';
-import { VpnProtocolModule } from './vpn-protocol/vpn-protocol.module';
-import { SubscriptionModule } from './subscription/subscription.module';
+import { RoleModule } from './user-account/role/role.module';
+import { TokenModule } from './user-account/token/token.module';
+import { AuthModule } from './user-account/auth/auth.module';
+import { RegionModule } from './VPN/region/region.module';
+import { VpnProtocolModule } from './VPN/vpn-protocol/vpn-protocol.module';
+import { SubscriptionModule } from './VPN/subscription/subscription.module';
 import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
 import { ConfigModule } from '@nestjs/config';
-import { PaymentModule } from './payment/payment.module';
-import { ReferralModule } from './referral/referral.module';
-import { PromoModule } from './promo/promo.module';
+import { PaymentModule } from './VPN/payment/payment.module';
+import { ReferralModule } from './commerce/referral/referral.module';
+import { PromoModule } from './commerce/promo/promo.module';
 import { StatisticModule } from './statistic/statistic.module';
-import { ScheduleModule } from '@nestjs/schedule';
+import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
 import { LoggerModule } from 'nestjs-pino';
-import moment from 'moment-timezone';
-import { BullModule } from '@nestjs/bullmq';
 import { EmailModule } from './email/email.module';
 import { HealthCheckModule } from './health-check/health-check.module';
-import { VlessVpnModule } from './vless-vpn/vless-vpn.module';
+import { VlessVpnModule } from './VPN/vless-vpn/vless-vpn.module';
+import moment from 'moment-timezone';
 
 @Module({
   imports: [

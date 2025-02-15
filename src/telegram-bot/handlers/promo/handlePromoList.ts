@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
-import { UserService } from '../../../user/user.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { Context, Markup } from 'telegraf';
 import { TelegramBotUtils } from '../../telegram-bot.utils';
-import { PromoService } from '../../../promo/promo.service';
 import { PinoLogger } from 'nestjs-pino';
-import { ReferralService } from '../../../referral/referral.service';
 import { noCodeText, pickCodeText } from '../../text&buttons/text&buttons';
+import { UserService } from '../../../user-account/user/user.service';
+import { PromoService } from '../../../commerce/promo/promo.service';
+import { ReferralService } from '../../../commerce/referral/referral.service';
 
 @Injectable()
 @Update()

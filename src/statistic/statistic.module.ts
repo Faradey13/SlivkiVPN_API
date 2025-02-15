@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { StatisticService } from './statistic.service';
 import { StatisticController } from './statistic.controller';
 import { PrismaModule } from '../prisma/prisma.module';
-import { OutlineVpnModule } from '../outline-vpn/outline-vpn.module';
-import { RegionModule } from '../region/region.module';
-import { SubscriptionModule } from '../subscription/subscription.module';
 import { BullModule } from '@nestjs/bullmq';
+import { OutlineVpnModule } from '../VPN/outline-vpn/outline-vpn.module';
+import { RegionModule } from '../VPN/region/region.module';
+import { SubscriptionModule } from '../VPN/subscription/subscription.module';
 
 @Module({
   providers: [StatisticService],

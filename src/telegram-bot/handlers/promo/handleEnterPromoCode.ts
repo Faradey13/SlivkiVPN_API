@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Action, Ctx, InjectBot, Update } from 'nestjs-telegraf';
 import { Context, Markup, Telegraf } from 'telegraf';
-import { UserService } from '../../../user/user.service';
-import { PromoService } from '../../../promo/promo.service';
 import { PinoLogger } from 'nestjs-pino';
+import { UserService } from '../../../user-account/user/user.service';
+import { PromoService } from '../../../commerce/promo/promo.service';
 
 @Injectable()
 @Update()

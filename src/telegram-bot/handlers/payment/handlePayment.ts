@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { Action, Update } from 'nestjs-telegraf';
-import { Context, Markup } from 'telegraf';
-import { UserService } from '../../../user/user.service';
-import { PaymentService } from '../../../payment/payment.service';
-import { SubscriptionPlanService } from '../../../subscription/subscription-plan.service';
-import { PinoLogger } from 'nestjs-pino';
-import { Confirmation, ConfirmationRedirect } from 'nestjs-yookassa';
-import { SubscriptionService } from '../../../subscription/subscription.service';
 import { PaymentConfirmHandler } from './handleConfirmPayment';
 import { Payment } from '../../text&buttons/text&buttons';
+import { PinoLogger } from 'nestjs-pino';
+import { UserService } from '../../../user-account/user/user.service';
+import { PaymentService } from '../../../VPN/payment/payment.service';
+import { SubscriptionPlanService } from '../../../VPN/subscription/subscription-plan.service';
+import { SubscriptionService } from '../../../VPN/subscription/subscription.service';
+import { Context } from 'telegraf';
+import { Confirmation, ConfirmationRedirect } from 'nestjs-yookassa';
 
 @Injectable()
 @Update()

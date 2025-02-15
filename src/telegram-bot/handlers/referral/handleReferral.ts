@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
-import { UserService } from '../../../user/user.service';
-import { ReferralService } from '../../../referral/referral.service';
-import { PromoService } from '../../../promo/promo.service';
 import { PinoLogger } from 'nestjs-pino';
 import { Referral } from '../../text&buttons/text&buttons';
+import { UserService } from '../../../user-account/user/user.service';
+import { ReferralService } from '../../../commerce/referral/referral.service';
+import { PromoService } from '../../../commerce/promo/promo.service';
 
 @Injectable()
 @Update()

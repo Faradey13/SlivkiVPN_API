@@ -4,8 +4,8 @@ import * as nodemailer from 'nodemailer';
 import { PinoLogger } from 'nestjs-pino';
 import process from 'node:process';
 import axios from 'axios';
-import { UserService } from '../user/user.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { UserService } from '../user-account/user/user.service';
 
 @Processor('emailQueue')
 export class EmailProcessor extends WorkerHost {

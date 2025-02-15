@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context } from 'telegraf';
-import { UserService } from '../../../user/user.service';
-import { SubscriptionService } from '../../../subscription/subscription.service';
 import { PinoLogger } from 'nestjs-pino';
 import { Subscription } from '../../text&buttons/text&buttons';
+import { UserService } from '../../../user-account/user/user.service';
+import { SubscriptionService } from '../../../VPN/subscription/subscription.service';
 
 @Injectable()
 @Update()

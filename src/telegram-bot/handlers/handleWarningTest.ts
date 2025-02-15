@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
-import { SubscriptionService } from '../../subscription/subscription.service';
-import { UserService } from '../../user/user.service';
 import { StatisticService } from '../../statistic/statistic.service';
-import { OutlineVpnService } from '../../outline-vpn/outline-vpn.service';
+import { SubscriptionService } from '../../VPN/subscription/subscription.service';
+import { UserService } from '../../user-account/user/user.service';
+import { OutlineVpnService } from '../../VPN/outline-vpn/outline-vpn.service';
 
 @Injectable()
 @Update()
@@ -13,7 +13,7 @@ export class WarningTestHandler {
     private readonly subscriptionService: SubscriptionService,
     private readonly userService: UserService,
     private readonly statistic: StatisticService,
-    private readonly outline: OutlineVpnService
+    private readonly outline: OutlineVpnService,
   ) {}
   @Action('warning_test')
   async handleWarningTest(@Ctx() ctx: Context) {

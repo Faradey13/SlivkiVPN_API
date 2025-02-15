@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
-import { UserService } from '../../../user/user.service';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { SubscriptionService } from '../../../subscription/subscription.service';
-import { PaymentService } from '../../../payment/payment.service';
-import { SubscriptionPlanService } from '../../../subscription/subscription-plan.service';
 import { PinoLogger } from 'nestjs-pino';
-import { PromoService } from '../../../promo/promo.service';
 import { TelegramBotUtils } from '../../telegram-bot.utils';
 import { ExtendSubscription } from '../../text&buttons/text&buttons';
+import { UserService } from '../../../user-account/user/user.service';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { SubscriptionPlanService } from '../../../VPN/subscription/subscription-plan.service';
+import { PaymentService } from '../../../VPN/payment/payment.service';
+import { SubscriptionService } from '../../../VPN/subscription/subscription.service';
+import { PromoService } from '../../../commerce/promo/promo.service';
 
 @Injectable()
 @Update()

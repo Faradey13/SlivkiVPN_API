@@ -124,7 +124,7 @@ model payment {
     user_id              Int
     key                  String
     protocol_id          Int
-    key_id               Int
+    key_id               String
     region_id            Int
     is_active            Boolean
     generated_at         DateTime               @default(now())
@@ -136,8 +136,8 @@ model payment {
 
 model region {
   id                   Int                    @id @default(autoincrement())
-  region_name          String                 @unique
-  region_name_eng      String                 @unique
+  region_name          String
+  region_name_eng      String
   flag                 String
   vpn_keys             vpn_keys[]
   connection_statistic connection_statistic[]
@@ -148,8 +148,15 @@ model region {
 model server_vless {
   id                   Int                    @id @default(autoincrement())
   apiUrl               String
-  uername              String
+  username              String
   password             String
+  network              String //tcp
+  security             String //reality
+  publicKey            String
+  fingerprint          String //chrome
+  serverNames          String //google.com
+  shortIds             String  //"shortIds": "ca45"
+  flow                 String //xtls-rprx-vision
   region_id            Int
   region   region   @relation(fields: [region_id], references: [id], onDelete: Cascade)
 }
@@ -164,7 +171,8 @@ model server_outline {
 
 model protocol {
   id                   Int                    @id @default(autoincrement())
-  protocol_name        String
+  protocol_name        String                 @unique
+  isActive             Boolean                @default(false)
   vpn_keys             vpn_keys[]
   connection_statistic connection_statistic[]
 }

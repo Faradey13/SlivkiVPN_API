@@ -1,10 +1,10 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { OutlineVpnService } from '../outline-vpn/outline-vpn.service';
-import { RegionService } from '../region/region.service';
 import { PinoLogger } from 'nestjs-pino';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { OutlineVpnService } from '../VPN/outline-vpn/outline-vpn.service';
+import { RegionService } from '../VPN/region/region.service';
 
 @Injectable()
 export class StatisticService implements OnModuleInit {
@@ -79,12 +79,12 @@ export class StatisticService implements OnModuleInit {
                   where: {
                     user_id_vpn_key_id: {
                       user_id: findKey.user_id,
-                      vpn_key_id: findKey.key_id,
+                      vpn_key_id: Number(findKey.key_id),
                     },
                   },
                   create: {
                     user_id: findKey.user_id,
-                    vpn_key_id: findKey.key_id,
+                    vpn_key_id: Number(findKey.key_id),
                     region_id: findKey.region_id,
                     protocol_id: findKey.protocol_id,
                     traffic: traffic,

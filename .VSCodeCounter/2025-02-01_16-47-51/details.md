@@ -129,10 +129,10 @@ Total : 123 files,  4516 codes, 686 comments, 672 blanks, all 5874 lines
 | [src/utils/decorators/role-auth.decorator.ts](/src/utils/decorators/role-auth.decorator.ts) | TypeScript | 3 | 0 | 3 | 6 |
 | [src/utils/guards/google.guard.ts](/src/utils/guards/google.guard.ts) | TypeScript | 11 | 0 | 2 | 13 |
 | [src/utils/guards/role.guard.ts](/src/utils/guards/role.guard.ts) | TypeScript | 49 | 0 | 3 | 52 |
-| [src/vpn-protocol/vpn-protocol.controller.spec.ts](/src/vpn-protocol/vpn-protocol.controller.spec.ts) | TypeScript | 14 | 0 | 5 | 19 |
+| [src/vpn-protocol/vpn-protocol.controller.spec.ts](/src/vpn-protocol/tests/vpn-protocol.controller.spec.ts) | TypeScript | 14 | 0 | 5 | 19 |
 | [src/vpn-protocol/vpn-protocol.controller.ts](/src/vpn-protocol/vpn-protocol.controller.ts) | TypeScript | 3 | 0 | 2 | 5 |
 | [src/vpn-protocol/vpn-protocol.module.ts](/src/vpn-protocol/vpn-protocol.module.ts) | TypeScript | 8 | 0 | 2 | 10 |
-| [src/vpn-protocol/vpn-protocol.service.spec.ts](/src/vpn-protocol/vpn-protocol.service.spec.ts) | TypeScript | 14 | 0 | 5 | 19 |
+| [src/vpn-protocol/vpn-protocol.service.spec.ts](/src/vpn-protocol/tests/vpn-protocol.service.spec.ts) | TypeScript | 14 | 0 | 5 | 19 |
 | [src/vpn-protocol/vpn-protocol.service.ts](/src/vpn-protocol/vpn-protocol.service.ts) | TypeScript | 3 | 0 | 2 | 5 |
 
 [Summary](results.md) / Details / [Diff Summary](diff.md) / [Diff Details](diff-details.md)

@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { StatisticService } from './statistic.service';
 import { PinoLogger } from 'nestjs-pino';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { SubscriptionService } from '../subscription/subscription.service';
+import { SubscriptionService } from '../VPN/subscription/subscription.service';
 
 @Controller('statistic')
 export class StatisticController {

@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
 import { TelegramBotUtils } from '../../telegram-bot.utils';
-import { RegionService } from '../../../region/region.service';
 import { PinoLogger } from 'nestjs-pino';
-import { UserService } from '../../../user/user.service';
 import { smartTvRegionText } from '../../text&buttons/text&buttons';
+import { RegionService } from '../../../VPN/region/region.service';
+import { UserService } from '../../../user-account/user/user.service';
 
 @Injectable()
 @Update()

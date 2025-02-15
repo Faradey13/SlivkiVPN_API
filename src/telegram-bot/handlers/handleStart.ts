@@ -1,11 +1,11 @@
 import { Action, Ctx, Start, Update } from 'nestjs-telegraf';
-import { Context, Markup } from 'telegraf';
+import { Context } from 'telegraf';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserService } from '../../user/user.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PinoLogger } from 'nestjs-pino';
-import { SubscriptionService } from '../../subscription/subscription.service';
 import { StartKeyboards, StartTexts } from '../text&buttons/text&buttons';
+import { UserService } from '../../user-account/user/user.service';
+import { SubscriptionService } from '../../VPN/subscription/subscription.service';
 
 @Injectable()
 @Update()

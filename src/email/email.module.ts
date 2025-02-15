@@ -3,7 +3,7 @@ import { EmailService } from './email.service';
 import { BullModule } from '@nestjs/bullmq';
 import { EmailProcessor } from './email.processor';
 import { PrismaModule } from '../prisma/prisma.module';
-import { UserModule } from '../user/user.module';
+import { UserModule } from '../user-account/user/user.module';
 
 @Module({
   providers: [EmailService, EmailProcessor],

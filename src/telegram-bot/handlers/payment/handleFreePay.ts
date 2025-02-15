@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context } from 'telegraf';
 import { v4 as uuidv4 } from 'uuid';
-import { UserService } from '../../../user/user.service';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { PaymentService } from '../../../payment/payment.service';
-import { SubscriptionPlanService } from '../../../subscription/subscription-plan.service';
 import { CurrencyEnum, PaymentMethodsEnum, PaymentStatusEnum } from 'nestjs-yookassa';
 import { PaymentConfirmHandler } from './handleConfirmPayment';
-import { SubscriptionService } from '../../../subscription/subscription.service';
+import { UserService } from '../../../user-account/user/user.service';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { PaymentService } from '../../../VPN/payment/payment.service';
+import { SubscriptionPlanService } from '../../../VPN/subscription/subscription-plan.service';
+import { SubscriptionService } from '../../../VPN/subscription/subscription.service';
+
 
 @Injectable()
 @Update()
