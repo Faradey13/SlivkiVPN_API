@@ -146,7 +146,6 @@ export class OutlineVpnService {
 
   async setActiveKey(userId: number, regionId: number, protocolId: number): Promise<vpn_keys> {
     try {
-      console.log(protocolId);
       this.logger.info(
         `Попытка изменить активный ключ для пользователя ID: ${userId}, регион ID: ${regionId} и протокола ID:${protocolId}`,
       );
@@ -247,12 +246,13 @@ export class OutlineVpnService {
         this.logger.warn(`Регион с именем "${dto.regionName}" не найден.`);
         throw new Error(`Регион "${dto.regionName}" не найден.`);
       }
-
+      const protocol = await this.protocol.getProtocolByName('Outline');
       const newServer = await this.prisma.server_outline.create({
         data: {
           apiUrl: dto.apiUrl,
           fingerprint: dto.fingerprint,
           region_id: region.id,
+          protocol_id: protocol.id,
         },
       });
 

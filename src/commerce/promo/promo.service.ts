@@ -182,6 +182,7 @@ export class PromoService {
           code_id: code.id,
           apply_date: new Date(),
           is_active: !isActive,
+          disabledAt: new Date(period + Date.now()),
         },
       });
       this.logger.info(`Промокод ${code.code} успешно применен пользователю ${userId}`);
@@ -221,7 +222,7 @@ export class PromoService {
   async getNoActivePromoCode(userId: number) {
     try {
       const userPromoCodesNotActive = await this.prisma.promo_codes.findMany({
-        where: { user_promocodes: { some: { user_id: userId, is_active: false, isUsed: false } } },
+        where: { user_promocodes: { some: { user_id: userId, is_active: false, is_used: false } } },
       });
       this.logger.info(`Для пользователя ${userId} найдены не активные промокоды`);
       return userPromoCodesNotActive;
@@ -276,4 +277,12 @@ export class PromoService {
       throw new Error(`${error} error DB, code not found`);
     }
   }
+
+  async disableOldCode(promoCodeId: number): Promise<promo_codes> {
+    const findCode = await this.getPromoCodeById(promoCodeId);
+    if (!findCode) return null;
+    await this.prisma.user_promocodes.update({ where: { id: promoCodeId }, data: { is_disabled: true } });
+  }
+
+  async findOldCode() {}
 }

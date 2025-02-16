@@ -159,16 +159,20 @@ model server_vless {
   serverNames          String //google.com
   shortIds             String  //"shortIds": "ca45"
   flow                 String //xtls-rprx-vision
+  protocol_id          Int
   region_id            Int
   region   region   @relation(fields: [region_id], references: [id], onDelete: Cascade)
+  protocol protocol @relation(fields: [protocol_id], references: [id], onDelete: Cascade)
 }
 
 model server_outline {
   id                   Int                    @id @default(autoincrement())
   apiUrl               String
   fingerprint          String
+  protocol_id          Int
   region_id            Int
   region   region   @relation(fields: [region_id], references: [id], onDelete: Cascade)
+  protocol protocol @relation(fields: [protocol_id], references: [id], onDelete: Cascade)
 }
 
 model protocol {
@@ -177,6 +181,8 @@ model protocol {
   vpn_keys             vpn_keys[]
   connection_statistic connection_statistic[]
   user_protocol        user_protocol[]
+  server_outline       server_outline[]
+  server_vless         server_vless[]
 }
 
 model user_protocol {
@@ -229,15 +235,17 @@ model referral_user {
 }
 
 model user_promocodes {
-  id          Int         @id @default(autoincrement())
-  user_id     Int
-  code_id     Int
-  is_active   Boolean
-  isUsed      Boolean     @default(false)
-  apply_date  DateTime    @default(now())
-  used_date   DateTime?
-  user        user        @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  promo_codes promo_codes @relation(fields: [code_id], references: [id], onDelete: Cascade)
+  id              Int         @id @default(autoincrement())
+  user_id         Int
+  code_id         Int
+  is_active       Boolean
+  is_used         Boolean     @default(false)
+  is_disabled     Boolean     @default(false)
+  disabledAt      DateTime
+  apply_date      DateTime    @default(now())
+  used_date       DateTime?
+  user            user        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  promo_codes     promo_codes @relation(fields: [code_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, code_id])
 }

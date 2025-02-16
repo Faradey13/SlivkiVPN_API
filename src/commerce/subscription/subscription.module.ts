@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { SubscriptionService } from './subscription.service';
 import { SubscriptionController } from './subscription.controller';
 import { SubscriptionPlanService } from './subscription-plan.service';
-import { BullModule } from '@nestjs/bullmq';
 import { FindUserForWarningProcessor } from './FindUserForWarning.processor';
 import { EndOldSubscriptionProcessor } from './endOldSubscription.processor';
 import { PrismaModule } from '../../prisma/prisma.module';
@@ -24,12 +23,6 @@ import { VlessVpnModule } from '../../VPN/vless-vpn/vless-vpn.module';
     OutlineVpnModule,
     VlessVpnModule,
     UserModule,
-    BullModule.registerQueue({
-      name: 'findUserForWarning',
-    }),
-    BullModule.registerQueue({
-      name: 'stopSubscriptions',
-    }),
     EmailModule,
   ],
   exports: [SubscriptionService, SubscriptionPlanService],

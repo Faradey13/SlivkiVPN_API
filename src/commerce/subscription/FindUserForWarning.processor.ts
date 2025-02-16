@@ -15,6 +15,7 @@ export class FindUserForWarningProcessor extends WorkerHost {
   }
 
   async process() {
+    console.log('поиск юзеров');
     try {
       this.logger.info('Запуск планового события "findUserForWarning"');
       const subscriptions = await this.prisma.subscription.findMany({

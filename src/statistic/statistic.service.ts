@@ -1,35 +1,19 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PinoLogger } from 'nestjs-pino';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
 import { OutlineVpnService } from '../VPN/outline-vpn/outline-vpn.service';
 import { RegionService } from '../VPN/region/region.service';
 import { VlessVpnService } from '../VPN/vless-vpn/vless-vpn.service';
 
 @Injectable()
-export class StatisticService implements OnModuleInit {
+export class StatisticService {
   constructor(
     private readonly logger: PinoLogger,
     private readonly prisma: PrismaService,
     private readonly outline: OutlineVpnService,
     private readonly region: RegionService,
     private readonly vless: VlessVpnService,
-    @InjectQueue('collectStatisticQueue') private readonly collectStatisticQueue: Queue,
   ) {}
-
-  async onModuleInit() {
-    await this.collectStatisticQueue.add(
-      'collect stats',
-      { jobData: 'every 5 minutes data' },
-      {
-        repeat: {
-          pattern: '10 * * * *',
-        },
-        jobId: 'every-10-minutes-h-job',
-      },
-    );
-  }
 
   gbToBites(gb: number) {
     return gb * 1024 * 1024 * 1024;

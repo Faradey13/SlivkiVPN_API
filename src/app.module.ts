@@ -23,6 +23,7 @@ import { VlessVpnModule } from './VPN/vless-vpn/vless-vpn.module';
 import moment from 'moment-timezone';
 import { SubscriptionModule } from './commerce/subscription/subscription.module';
 import { PaymentModule } from './commerce/payment/payment.module';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -100,6 +101,7 @@ import { PaymentModule } from './commerce/payment/payment.module';
     EmailModule,
     HealthCheckModule,
     VlessVpnModule,
+    TaskModule,
   ],
   controllers: [],
   providers: [],

@@ -1,50 +1,23 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { addSubscriptionDto } from './dto/subscriptionDto';
 import { subscription } from '@prisma/client';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PinoLogger } from 'nestjs-pino';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OutlineVpnService } from '../../VPN/outline-vpn/outline-vpn.service';
 import { VlessVpnService } from '../../VPN/vless-vpn/vless-vpn.service';
 
 @Injectable()
-export class SubscriptionService implements OnModuleInit {
+export class SubscriptionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly outline: OutlineVpnService,
     private readonly logger: PinoLogger,
     private readonly vlessService: VlessVpnService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    @InjectQueue('findUserForWarning') private readonly warningQueue: Queue,
-    @InjectQueue('stopSubscriptions') private readonly stopSubscriptions: Queue,
   ) {
     this.logger.setContext(SubscriptionService.name);
-  }
-
-  async onModuleInit() {
-    await this.warningQueue.add(
-      'findUserForWarning',
-      { jobData: 'every 5 minutes h data' },
-      {
-        repeat: {
-          pattern: '5 * * * *',
-        },
-        jobId: 'every-5-minutes-h-job',
-      },
-    );
-    await this.stopSubscriptions.add(
-      'stopSubscriptions',
-      { jobData: 'every 15 minutes h data' },
-      {
-        repeat: {
-          pattern: '15 * * * *',
-        },
-        jobId: 'every-15-minutes-h-job',
-      },
-    );
   }
 
   async getUserSubscription(userId: number): Promise<subscription | null> {

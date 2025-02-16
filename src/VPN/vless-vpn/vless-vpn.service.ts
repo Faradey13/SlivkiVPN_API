@@ -6,7 +6,7 @@ import { PinoLogger } from 'nestjs-pino';
 import { v5 as uuidv5 } from 'uuid';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { server_outline, server_vless } from '@prisma/client';
+import { server_vless } from '@prisma/client';
 import { VpnProtocolService } from '../vpn-protocol/vpn-protocol.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegionService } from '../region/region.service';
@@ -161,6 +161,7 @@ export class VlessVpnService {
     try {
       this.logger.info(`Создание нового VLESS сервера для региона  ${dto.regionName}...`);
       const region = await this.region.getRegionByRusName(dto.regionName);
+      const protocol = await this.protocol.getProtocolByName('Vless');
       const newServer = await this.prisma.server_vless.create({
         data: {
           serverNames: dto.serverNames,
@@ -175,6 +176,7 @@ export class VlessVpnService {
           publicKey: dto.publicKey,
           security: dto.security,
           shortIds: dto.shortIds,
+          protocol_id: protocol.id,
         },
       });
 

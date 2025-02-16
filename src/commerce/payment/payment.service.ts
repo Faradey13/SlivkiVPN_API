@@ -189,7 +189,7 @@ export class PaymentService {
           await this.prisma.user_promocodes.update({
             where: { user_id_code_id: { user_id: userId, code_id: promoCode.id } },
             data: {
-              isUsed: true,
+              is_used: true,
               used_date: new Date(),
               is_active: false,
             },
