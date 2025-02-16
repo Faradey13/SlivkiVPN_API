@@ -80,6 +80,7 @@ export class RegionService {
 
   async getRegionById(id: number): Promise<region> {
     try {
+      console.log(id)
       const cacheKey = `region_${id}`;
       this.logger.info(`Получение региона с ID ${id}, проверка кеша...`);
       const regionCache = (await this.cacheManager.get(cacheKey)) as region | null;

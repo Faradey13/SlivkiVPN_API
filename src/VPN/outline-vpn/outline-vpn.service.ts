@@ -3,7 +3,7 @@ import { OutlineVPN } from 'outlinevpn-api';
 import { createOutlineKeyDto, createOutlineServerDto } from './dto/outline.dto';
 import { RegionService } from '../region/region.service';
 import { PinoLogger } from 'nestjs-pino';
-import { server_outline, subscription, vpn_keys } from '@prisma/client';
+import { server_outline, vpn_keys } from '@prisma/client';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { VpnProtocolService } from '../vpn-protocol/vpn-protocol.service';
@@ -22,24 +22,11 @@ export class OutlineVpnService {
     this.logger.setContext(OutlineVpnService.name);
   }
 
-  //перенести в Subscription service
-  async getUsersWithSubscriptions(): Promise<subscription[]> {
-    try {
-      this.logger.info(`Поиск всех активных подпискок пользователей`);
-      const activeSub = await this.prisma.subscription.findMany({ where: { subscription_status: true } });
-      this.logger.info(`Найдено : ${activeSub.length} активных подписок`);
-      return activeSub;
-    } catch (error) {
-      this.logger.error(`Ошибка получения активных подписок: ${error.message}`);
-    }
-  }
-
   //добавить логику если много серверов в 1 регионе
   private async createOutlineClient(serverId: number) {
     this.logger.info(`Создание клиента Outline для сервера с ID: ${serverId}`);
-    const region = await this.region.getRegionById(serverId);
     const server = await this.getOutlineServerById(serverId);
-    this.logger.info(`Регион найден: ${region.region_name_eng}`);
+    this.logger.info(`сервер найден: ${server.id}`);
     return new OutlineVPN({
       apiUrl: server.apiUrl,
       fingerprint: server.fingerprint,
@@ -157,8 +144,9 @@ export class OutlineVpnService {
     }
   }
 
-  async setActiveKey(userId: number, regionId: number, protocolId: number) {
+  async setActiveKey(userId: number, regionId: number, protocolId: number): Promise<vpn_keys> {
     try {
+      console.log(protocolId);
       this.logger.info(
         `Попытка изменить активный ключ для пользователя ID: ${userId}, регион ID: ${regionId} и протокола ID:${protocolId}`,
       );
@@ -169,8 +157,11 @@ export class OutlineVpnService {
         this.logger.error(`Для пользователя ID: ${userId} не найден ключ в регионе ID: ${regionId}`);
         return;
       }
-      const allKeys = await this.getAllUsersKeys(userId);
+      const allKeys = await this.prisma.vpn_keys.findMany({ where: { user_id: userId } });
+      console.log(allKeys, 'allKeys');
       const filteredKeys = allKeys.filter((key) => key.id !== newActiveKey.id);
+      console.log(newActiveKey, 'newActiveKey');
+      console.log(filteredKeys, 'filteredKeys');
       await this.prisma.$transaction([
         this.prisma.vpn_keys.updateMany({
           where: {
@@ -185,6 +176,7 @@ export class OutlineVpnService {
       ]);
 
       this.logger.info(`Ключ активно изменен ID: ${newActiveKey.id} для пользователя ID: ${userId}`);
+      return newActiveKey;
     } catch (error) {
       this.logger.error(
         `ОШбика изменения активного ключа для пользователя ID: ${userId} в регионе ID: ${regionId}:`,
@@ -231,17 +223,17 @@ export class OutlineVpnService {
     }
   }
 
-  async getMetrics(regionId: number) {
-    this.logger.info(`Запрос на получение метрик для региона с ID: ${regionId}`);
+  async getOutlineMetrics(serverId: number) {
+    this.logger.info(`Запрос на получение метрик для сервера с ID: ${serverId}`);
     try {
-      const outlineClient = await this.createOutlineClient(regionId);
+      const outlineClient = await this.createOutlineClient(serverId);
       const usage = await outlineClient.getDataUsage();
       const status = await outlineClient.getShareMetrics();
       await outlineClient.setShareMetrics(true);
-      this.logger.info(`Метрики для региона с ID: ${regionId} получены`);
+      this.logger.info(`Метрики для сервера с ID: ${serverId} получены`);
       return { metrics: usage, status: status };
     } catch (error) {
-      this.logger.error(`Ошибка при получении метрик для региона с ID: ${regionId}: ${error.message}`);
+      this.logger.error(`Ошибка при получении метрик для региона с ID: ${serverId}: ${error.message}`);
       throw new Error(`Error in getMetrics: ${error.message}`);
     }
   }
@@ -266,7 +258,7 @@ export class OutlineVpnService {
 
       this.logger.info(`Сервер Outline успешно создан: ${JSON.stringify(newServer)}`);
 
-      const activeUserSub = await this.getUsersWithSubscriptions();
+      const activeUserSub = await this.prisma.subscription.findMany({ where: { subscription_status: true } });
       if (activeUserSub.length > 0) {
         this.logger.info(`Найдено ${activeUserSub.length} пользователей с подписками. Создание ключей...`);
 

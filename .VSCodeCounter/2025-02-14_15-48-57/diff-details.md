@@ -69,11 +69,11 @@ Total : 98 files,  2321 codes, -475 comments, 180 blanks, all 2026 lines
 | [src/task/task.module.ts](/src/task/task.module.ts) | TypeScript | -10 | 0 | -2 | -12 |
 | [src/task/task.service.ts](/src/task/task.service.ts) | TypeScript | -48 | 0 | -5 | -53 |
 | [src/telegram-bot/handlers/VPN/handleChangeRegion.ts](/src/telegram-bot/handlers/VPN/handleChangeRegion.ts) | TypeScript | 7 | 0 | 0 | 7 |
-| [src/telegram-bot/handlers/VPN/handleDownloadOutline.ts](/src/telegram-bot/handlers/VPN/handleDownloadOutline.ts) | TypeScript | 5 | 0 | -1 | 4 |
+| [src/telegram-bot/handlers/VPN/handleDownloadOutline.ts](/src/telegram-bot/handlers/VPN/downloadApps/handleDownloadOutline.ts) | TypeScript | 5 | 0 | -1 | 4 |
 | [src/telegram-bot/handlers/VPN/handleGetKey.ts](/src/telegram-bot/handlers/VPN/handleGetKey.ts) | TypeScript | 6 | 0 | -3 | 3 |
 | [src/telegram-bot/handlers/VPN/handleGetSmartTvFile.ts](/src/telegram-bot/handlers/VPN/handleGetSmartTvFile.ts) | TypeScript | 39 | 0 | 1 | 40 |
-| [src/telegram-bot/handlers/VPN/handleOutlineMobile.ts](/src/telegram-bot/handlers/VPN/handleOutlineMobile.ts) | TypeScript | 6 | 0 | 1 | 7 |
-| [src/telegram-bot/handlers/VPN/handleOutlinePC.ts](/src/telegram-bot/handlers/VPN/handleOutlinePC.ts) | TypeScript | -5 | 0 | 0 | -5 |
+| [src/telegram-bot/handlers/VPN/handleOutlineMobile.ts](/src/telegram-bot/handlers/VPN/downloadApps/handleOutlineMobile.ts) | TypeScript | 6 | 0 | 1 | 7 |
+| [src/telegram-bot/handlers/VPN/handleOutlinePC.ts](/src/telegram-bot/handlers/VPN/downloadApps/handleOutlinePC.ts) | TypeScript | -5 | 0 | 0 | -5 |
 | [src/telegram-bot/handlers/VPN/handleSmartTvRegion.ts](/src/telegram-bot/handlers/VPN/handleSmartTvRegion.ts) | TypeScript | 10 | 0 | 1 | 11 |
 | [src/telegram-bot/handlers/VPN/handleVpnMenu.ts](/src/telegram-bot/handlers/VPN/handleVpnMenu.ts) | TypeScript | 16 | 0 | 3 | 19 |
 | [src/telegram-bot/handlers/handleHelp.ts](/src/telegram-bot/handlers/handleHelp.ts) | TypeScript | -17 | 0 | -10 | -27 |

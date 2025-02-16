@@ -1,14 +1,14 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { addSubscriptionDto } from './dto/subscriptionDto';
-import { OutlineVpnService } from '../outline-vpn/outline-vpn.service';
 import { subscription } from '@prisma/client';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PinoLogger } from 'nestjs-pino';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { VlessVpnService } from '../vless-vpn/vless-vpn.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { OutlineVpnService } from '../../VPN/outline-vpn/outline-vpn.service';
+import { VlessVpnService } from '../../VPN/vless-vpn/vless-vpn.service';
 
 @Injectable()
 export class SubscriptionService implements OnModuleInit {
@@ -90,7 +90,7 @@ export class SubscriptionService implements OnModuleInit {
             subscription_status: true,
           },
         });
-        // await this.outline.createSetKeys(dto.userId);
+        await this.outline.createSetKeys(dto.userId);
         await this.vlessService.createVlessVpnKeySet(dto.userId);
         this.logger.info(`Подписка для пользователя ${dto.userId} успешно создана`);
         return newSub;

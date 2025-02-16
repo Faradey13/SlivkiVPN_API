@@ -2,9 +2,9 @@ import { Body, Controller, Get, HttpException, HttpStatus, Post, Req, Res } from
 import { VlessVpnService } from './vless-vpn.service';
 import { Request, Response } from 'express';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { CreateOutlineServerDto } from './dto/vlessDto';
 import { PinoLogger } from 'nestjs-pino';
 import { server_vless } from '@prisma/client';
+import { CreateVlessServerDto } from './dto/vlessDto';
 
 @Controller('vless-vpn')
 export class VlessVpnController {
@@ -45,21 +45,8 @@ export class VlessVpnController {
   }
 
   @Get('stat')
-  async getStat(@Req() req: Request) {
-    const cookie = req.headers.cookie;
-    console.log(cookie, 'coo');
-    if (!cookie) {
-      throw new HttpException('No cookies found', HttpStatus.UNAUTHORIZED);
-    }
-    const sessionId = cookie
-      ?.split('; ')
-      .find((c) => c.startsWith('3x-ui'))
-      ?.split('=')[1];
-    if (!sessionId) {
-      throw new HttpException('Session ID not found', HttpStatus.UNAUTHORIZED);
-    }
-    console.log(sessionId, 'id id');
-    return this.vlessVpnService.getInbounds(sessionId);
+  async getStat() {
+    return this.vlessVpnService.getVlessMetric(3, 1);
   }
 
   @Post('new_server')
@@ -77,11 +64,11 @@ export class VlessVpnController {
   })
   @ApiBody({
     description: 'Данные для создания нового VLESS сервера',
-    type: CreateOutlineServerDto,
+    type: CreateVlessServerDto,
   })
-  async createVlessServer(@Body() dto: CreateOutlineServerDto): Promise<server_vless> {
+  async createVlessServer(@Body() dto: CreateVlessServerDto): Promise<server_vless> {
     try {
-      this.logger.info(`Создание нового VLESS сервера для региона ID ${dto.regionId}...`);
+      this.logger.info(`Создание нового VLESS сервера для региона ID ${dto.regionName}...`);
 
       const newServer = await this.vlessVpnService.createVlessServer(dto);
 

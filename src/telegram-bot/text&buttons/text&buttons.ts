@@ -1,5 +1,6 @@
 import { Markup } from 'telegraf';
 import { promo_codes } from '@prisma/client';
+import { HiddifyMobileHandler } from '../handlers/VPN/downloadApps/handleHiddifyMobile';
 
 //Главная страница
 export const StartTexts = {
@@ -78,6 +79,7 @@ export const HelpKeyboard = Markup.inlineKeyboard([
     ),
   ],
   [Markup.button.callback('📱 Скачать Outline', 'download_outline')],
+  [Markup.button.callback('📱 Скачать Hiddify', 'download_hiddify')],
   [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
 ]);
 
@@ -94,10 +96,20 @@ export const VpnMenuText = `
 export const VpnMenuKeyboard = Markup.inlineKeyboard([
   [Markup.button.callback('🔑 Получить ключ', 'get_key')],
   [Markup.button.callback('📺 Ключ для Смарт ТВ', 'smart_tv_key')],
-  [Markup.button.callback('🔄 Изменить протокол VPN', 'smart_tv_key')],
+  [Markup.button.callback('🔄 Изменить протокол VPN', 'protocol_list')],
   [Markup.button.callback('❓ Информация', 'smart_tv_key')],
   [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
 ]);
+
+//Страница выбора протокола
+
+export const protocolList = {
+  test(protocolName: string) {
+    return `Ваш активный протокол - ${protocolName}
+    Вы можете выбрать другой протокол кликнув по кнопке
+    `;
+  },
+};
 
 //Страница получения ключа и выбора региона
 
@@ -113,9 +125,16 @@ export const GetVpnKey = {
 
 Для копирования ключа просто нажмите на него в сообщении.`;
   },
-  buttons() {
+  buttonsOutline() {
     return [
       [Markup.button.callback('📱 Скачать Outline', 'download_outline')],
+      [Markup.button.callback('⬅️ Назад', 'vpn_menu')],
+      [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
+    ];
+  },
+  buttonsHiddify() {
+    return [
+      [Markup.button.callback('📱 Скачать Hiddify', 'download_hiddify')],
       [Markup.button.callback('⬅️ Назад', 'vpn_menu')],
       [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
     ];
@@ -130,6 +149,13 @@ export const keyboardDownloadOutline = Markup.inlineKeyboard([
   [Markup.button.callback('📱 Android/iOS', 'outline_Mobile')],
   [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
 ]);
+// скачивание Hiddify
+export const textDownloadHiddify = 'Выберите вашу платформу для скачивания Outline:';
+export const keyboardDownloadHiddify = Markup.inlineKeyboard([
+  [Markup.button.callback('🖥 PC (Mac/Windows/Linux)', 'hiddify_PC')],
+  [Markup.button.callback('📱 Android/iOS', 'mobile_hiddify')],
+  [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
+]);
 
 //Outline для смартфонов
 export const textMobileOutline = 'Выберите версию для скачивания:';
@@ -137,6 +163,17 @@ export const textMobileOutline = 'Выберите версию для скач�
 export const keyboardMobileOutline = Markup.inlineKeyboard([
   [Markup.button.url('🤖 Android', 'https://play.google.com/store/apps/details?id=org.outline.android.client')],
   [Markup.button.url('🍎 iOS', 'https://itunes.apple.com/app/outline-app/id1356177741')],
+  [Markup.button.callback('⬅️ Назад к выбору платформы', 'download_outline')],
+  [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
+]);
+
+//Hiddify для смартфонов
+export const textMobileHiddify = 'Выберите версию для скачивания:';
+export const keyboardMobileHiddify = Markup.inlineKeyboard([
+  [Markup.button.url('🤖 Android', 'https://play.google.com/store/apps/details?id=app.hiddify.com&pli=1')],
+  [Markup.button.url('🍎 iOS', 'https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532?platform=iphone')],
+  [Markup.button.callback('⬅️ Назад к выбору платформы', 'download_hiddify')],
+  [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
 ]);
 
 //Outline на ПК
@@ -156,6 +193,34 @@ export const keyboardPcOutline = Markup.inlineKeyboard([
       'https://s3.amazonaws.com/outline-releases/client/linux/stable/Outline-Client.AppImage',
     ),
   ],
+  [Markup.button.callback('⬅️ Назад к выбору платформы', 'download_outline')],
+  [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
+]);
+
+// Hiddify для ПК
+export const textPcHiddify = `
+Выберите версию для скачивания:
+Для для установки приложения на mac на чипе intel потребуются дополнительные действия, ознакомьтесь с инструкцией
+`;
+
+export const keyboardPcHiddify = Markup.inlineKeyboard([
+  [Markup.button.url('🍎 Mac M', 'https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532?platform=iphone')],
+  [Markup.button.url('🍎 Mac Intel', 'https://github.com/hiddify/hiddify-app/releases/latest/download/Hiddify-MacOS.dmg')],
+  [
+    Markup.button.url(
+      '🪟 Windows',
+      'https://github.com/hiddify/hiddify-app/releases/latest/download/Hiddify-Windows-Setup-x64.Msix',
+    ),
+  ],
+  [
+    Markup.button.url(
+      '🐧 Linux',
+      'https://github.com/hiddify/hiddify-app/releases/latest/download/Hiddify-Linux-x64.AppImage',
+    ),
+  ],
+  [Markup.button.callback('❓Инструкция для мак на Intel', 'help')],
+  [Markup.button.callback('⬅️ Назад к выбору платформы', 'download_hiddify')],
+  [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
 ]);
 
 // Ключ для SMART TV
@@ -269,7 +334,7 @@ export const Payment = {
     return `Вы выбрали продление подписки на ${planName} за ${amount}₽. 
     
       Нажмите кнопку оплатить, чтобы приступить к оплате.`;
-  }, //тут кстати наверно стоит так же добавить если новая подписка а не продление - вы купили подписку на ....
+  }, //тут наверно стоит так же добавить 'если новая подписка' - вы купили подписку на ....
   paymentKeyboard(redirectUrl: string) {
     return Markup.inlineKeyboard([
       [Markup.button.url('Оплатить', redirectUrl)],

@@ -5,6 +5,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { OutlineVpnService } from '../VPN/outline-vpn/outline-vpn.service';
 import { RegionService } from '../VPN/region/region.service';
+import { VlessVpnService } from '../VPN/vless-vpn/vless-vpn.service';
 
 @Injectable()
 export class StatisticService implements OnModuleInit {
@@ -13,6 +14,7 @@ export class StatisticService implements OnModuleInit {
     private readonly prisma: PrismaService,
     private readonly outline: OutlineVpnService,
     private readonly region: RegionService,
+    private readonly vless: VlessVpnService,
     @InjectQueue('collectStatisticQueue') private readonly collectStatisticQueue: Queue,
   ) {}
 
@@ -46,17 +48,51 @@ export class StatisticService implements OnModuleInit {
 
   async createStatistic() {
     try {
+      console.log('СБОР СТАТИСТИКИ');
       this.logger.info('Начало создания статистики по регионам');
       const regions = await this.region.getAllRegions();
+      const serversVless = await this.vless.getAllVlessServers();
+      const userSub = await this.prisma.subscription.findMany({ where: { subscription_status: true } });
+      for (const server of serversVless) {
+        for (const user of userSub) {
+          const metric = await this.vless.getVlessMetric(user.user_id, server.id);
+          const totalBites = metric.up + metric.down;
+          const vpnKey = await this.prisma.vpn_keys.findFirst({
+            where: {
+              user_id: user.user_id,
+              region_id: server.region_id,
+            },
+          });
+          await this.prisma.connection_statistic.upsert({
+            where: {
+              user_id_vpn_key_id: {
+                user_id: metric.email,
+                vpn_key_id: vpnKey.id,
+              },
+            },
+            create: {
+              user_id: user.user_id,
+              vpn_key_id: vpnKey.id,
+              region_id: server.region_id,
+              protocol_id: vpnKey.protocol_id,
+              traffic: totalBites,
+            },
+            update: {
+              traffic: totalBites,
+            },
+          });
+        }
+      }
+      const serversOutline = await this.outline.getAllOutlineServers();
       this.logger.info(`Получено ${regions.length} регионов для обработки`);
 
-      for (const region of regions) {
+      for (const server of serversOutline) {
         try {
-          this.logger.info(`Получение метрик для региона с ID: ${region.id}`);
-          const regionMetrics = await this.outline.getMetrics(region.id);
+          this.logger.info(`Получение метрик для сервера с ID: ${server.id}`);
+          const regionMetrics = await this.outline.getOutlineMetrics(server.id);
 
           if (!regionMetrics || !regionMetrics.metrics.bytesTransferredByUserId) {
-            this.logger.warn(`Метрики для региона ${region.id} не найдены или пусты`);
+            this.logger.warn(`Метрики для региона ${server.id} не найдены или пусты`);
             continue;
           }
 
@@ -79,12 +115,12 @@ export class StatisticService implements OnModuleInit {
                   where: {
                     user_id_vpn_key_id: {
                       user_id: findKey.user_id,
-                      vpn_key_id: Number(findKey.key_id),
+                      vpn_key_id: findKey.id,
                     },
                   },
                   create: {
                     user_id: findKey.user_id,
-                    vpn_key_id: Number(findKey.key_id),
+                    vpn_key_id: findKey.id,
                     region_id: findKey.region_id,
                     protocol_id: findKey.protocol_id,
                     traffic: traffic,
@@ -101,7 +137,7 @@ export class StatisticService implements OnModuleInit {
 
           await Promise.all(upsertOperations);
         } catch (error) {
-          this.logger.error(`Ошибка при обработке региона ${region.id}: ${error.message}`);
+          this.logger.error(`Ошибка при обработке сервера ${server.id}: ${error.message}`);
         }
       }
       this.logger.info('Создание статистики завершено');

@@ -1,20 +1,22 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import qs from 'qs';
-import { AddVlessClientDto, CreateOutlineServerDto } from './dto/vlessDto';
+import { AddVlessClientDto, CreateVlessServerDto } from './dto/vlessDto';
 import { PinoLogger } from 'nestjs-pino';
 import { v5 as uuidv5 } from 'uuid';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { server_vless } from '@prisma/client';
+import { server_outline, server_vless } from '@prisma/client';
 import { VpnProtocolService } from '../vpn-protocol/vpn-protocol.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RegionService } from '../region/region.service';
 
 @Injectable()
 export class VlessVpnService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: PinoLogger,
+    private readonly region: RegionService,
     private readonly protocol: VpnProtocolService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
@@ -98,9 +100,41 @@ export class VlessVpnService {
           },
         },
       );
-      return response.data;
+      return response.data.obj;
     } catch (error) {
       console.log(error.message);
+    }
+  }
+
+  async getVlessMetric(userId: number, serverId: number) {
+    const server = await this.getVlessServerById(serverId);
+    const sessionId = await this.login(server.username, server.password, server.api_url);
+    const metrics = await this.getStats(sessionId, String(userId));
+    return metrics;
+  }
+
+  async getVlessServerById(serverId: number) {
+    try {
+      const cacheKey = `vlessServer_${serverId}`;
+      this.logger.info(`Получение VLESS сервера (ID: ${serverId}), проверка кеша...`);
+      const cachedServer = (await this.cacheManager.get(cacheKey)) as server_vless | null;
+      if (cachedServer) {
+        this.logger.info(`VLESS сервер (ID: ${serverId}) загружен из кеша: ${JSON.stringify(cachedServer)}`);
+        return cachedServer;
+      }
+      const server = await this.prisma.server_vless.findUnique({ where: { id: serverId } });
+      if (!server) {
+        this.logger.warn(`VLESS сервер (ID: ${serverId}) не найден в БД`);
+        return null;
+      }
+      this.logger.info(
+        `VLESS сервер (ID: ${serverId}) загружен из БД и сохранен в кеш: ${JSON.stringify(server)}`,
+      );
+      await this.cacheManager.set(cacheKey, server);
+      return server;
+    } catch (error) {
+      this.logger.error(`Ошибка при получении VLESS сервера (ID: ${serverId}): ${error.message}`);
+      throw new Error(`Ошибка при получении VLESS сервера (ID: ${serverId})`);
     }
   }
 
@@ -123,27 +157,32 @@ export class VlessVpnService {
     }
   }
 
-  async createVlessServer(dto: CreateOutlineServerDto) {
+  async createVlessServer(dto: CreateVlessServerDto) {
     try {
-      this.logger.info(`Создание нового VLESS сервера для региона ID ${dto.regionId}...`);
-
+      this.logger.info(`Создание нового VLESS сервера для региона  ${dto.regionName}...`);
+      const region = await this.region.getRegionByRusName(dto.regionName);
       const newServer = await this.prisma.server_vless.create({
         data: {
           serverNames: dto.serverNames,
+          username: dto.username,
           password: dto.password,
           fingerprint: dto.fingerprint,
-          region_id: dto.regionId,
+          region_id: region.id,
           flow: dto.flow,
-          apiUrl: dto.apiUrl,
+          api_url: dto.api_url,
+          key_url: dto.key_url,
           network: dto.network,
           publicKey: dto.publicKey,
           security: dto.security,
           shortIds: dto.shortIds,
-          username: dto.username,
         },
       });
 
       this.logger.info(`VLESS сервер успешно создан ID: ${newServer.id}`);
+      const userSub = await this.prisma.subscription.findMany({ where: { subscription_status: true } });
+      for (const user of userSub) {
+        await this.createVlessVpnKey(user.user_id, newServer.id);
+      }
       return newServer;
     } catch (error) {
       this.logger.error(`Ошибка при создании VLESS сервера: ${error.message}`);
@@ -183,9 +222,9 @@ export class VlessVpnService {
       const server = await this.prisma.server_vless.findUnique({ where: { id: serverId } });
       if (!server) throw new Error(`Сервер VLESS с ID ${serverId} не найден`);
 
-      const vpnKey = `vless://${this.maskId(userId)}@${server.apiUrl}?type=${server.network}&security=${server.security}&pbk=${
+      const vpnKey = `vless://${this.maskId(userId)}@${server.key_url}?type=${server.network}&security=${server.security}&pbk=${
         server.publicKey
-      }&fp=chrome&sni=google.com&sid=${server.shortIds}&spx=%2F&flow=${server.flow}#${userId}`;
+      }&fp=chrome&sni=google.com&sid=${server.shortIds}&spx=%2F&flow=${server.flow}#SLIVKI_VPN-${userId}`;
 
       const newKey = await this.prisma.vpn_keys.create({
         data: {
@@ -210,16 +249,14 @@ export class VlessVpnService {
     try {
       const servers = await this.getVlessServers();
       for (const server of servers) {
-        const sessionId = await this.login(server.username, server.password, server.apiUrl);
-        console.log(sessionId);
-        console.log(this.maskId(userId));
+        const sessionId = await this.login(server.username, server.password, server.api_url);
         const userData: AddVlessClientDto = {
           email: String(userId),
           alterId: userId,
           enable: true,
           expiryTime: 0,
           limitIp: 0,
-          totalGB: 1,
+          totalGB: null,
           flow: 'xtls-rprx-vision',
           id: this.maskId(userId),
         };
@@ -241,8 +278,8 @@ export class VlessVpnService {
       const servers = await this.getVlessServers();
       await Promise.all(
         servers.map(async (server) => {
-          const sessionId = await this.login(server.username, server.password, server.apiUrl);
-          await this.delUser(sessionId, server.apiUrl, this.maskId(userId));
+          const sessionId = await this.login(server.username, server.password, server.api_url);
+          await this.delUser(sessionId, server.api_url, this.maskId(userId));
         }),
       );
 
@@ -255,6 +292,33 @@ export class VlessVpnService {
     } catch (error) {
       this.logger.error(`Ошибка при удалении VLESS ключей: ${error.message}`);
       throw new Error('Ошибка при удалении VLESS ключей');
+    }
+  }
+
+  async getAllVlessServers() {
+    try {
+      const cacheKey = 'allVlessServers';
+      this.logger.info(`Получение всех серверов Vless, проверка кеша...`);
+
+      const cachedServers = (await this.cacheManager.get(cacheKey)) as server_vless[] | null;
+      if (cachedServers) {
+        this.logger.info(`Серверы Vless загружены из кеша`);
+        return cachedServers;
+      }
+
+      const vlessServers = await this.prisma.server_vless.findMany();
+
+      if (vlessServers.length > 0) {
+        this.logger.info(`Серверы Vless загружены из БД и сохранены в кеш.`);
+        await this.cacheManager.set(cacheKey, vlessServers);
+      } else {
+        this.logger.info(`Серверы Vless не найдены в БД.`);
+      }
+
+      return vlessServers;
+    } catch (error) {
+      this.logger.error(`Ошибка при получении всех серверов Vless: ${error.message}`);
+      throw new Error(`Ошибка при получении всех серверов Vless`);
     }
   }
 

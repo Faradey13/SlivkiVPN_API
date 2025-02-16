@@ -4,11 +4,11 @@ import { PaymentConfirmHandler } from './handleConfirmPayment';
 import { Payment } from '../../text&buttons/text&buttons';
 import { PinoLogger } from 'nestjs-pino';
 import { UserService } from '../../../user-account/user/user.service';
-import { PaymentService } from '../../../VPN/payment/payment.service';
-import { SubscriptionPlanService } from '../../../VPN/subscription/subscription-plan.service';
-import { SubscriptionService } from '../../../VPN/subscription/subscription.service';
 import { Context } from 'telegraf';
 import { Confirmation, ConfirmationRedirect } from 'nestjs-yookassa';
+import { PaymentService } from '../../../commerce/payment/payment.service';
+import { SubscriptionPlanService } from '../../../commerce/subscription/subscription-plan.service';
+import { SubscriptionService } from '../../../commerce/subscription/subscription.service';
 
 @Injectable()
 @Update()

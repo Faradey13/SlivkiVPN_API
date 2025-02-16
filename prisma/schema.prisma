@@ -21,6 +21,7 @@ model user {
   JWT_tokens             JWT_tokens[] // отношение к таблице JWT_tokens, один к многим
   user_roles             user_roles[]
   subscription           subscription?
+  user_protocol          user_protocol?
   free_subscription      free_subscription?
   subscription_statictic subscription_statictic?
   activation_codes       activation_codes? // отношение к таблице activation_codes, один к одному
@@ -147,8 +148,9 @@ model region {
 
 model server_vless {
   id                   Int                    @id @default(autoincrement())
-  apiUrl               String
-  username              String
+  api_url              String
+  key_url              String
+  username             String
   password             String
   network              String //tcp
   security             String //reality
@@ -172,23 +174,31 @@ model server_outline {
 model protocol {
   id                   Int                    @id @default(autoincrement())
   protocol_name        String                 @unique
-  isActive             Boolean                @default(false)
   vpn_keys             vpn_keys[]
   connection_statistic connection_statistic[]
+  user_protocol        user_protocol[]
+}
+
+model user_protocol {
+  id                   Int                    @id @default(autoincrement())
+  protocol_id          Int
+  user_id              Int                    @unique
+  user                 user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  protocol            protocol      @relation(fields: [protocol_id], references: [id], onDelete: Cascade)
 }
 
 model connection_statistic {
-  id           Int      @id @default(autoincrement())
-  user_id      Int
-  region_id    Int
-  traffic      Int
-  vpn_key_id   Int
-  protocol_id  Int
-  generated_at DateTime @default(now())
-  user         user     @relation(fields: [user_id], references: [id], onDelete: NoAction)
-  region       region   @relation(fields: [region_id], references: [id], onDelete: NoAction)
-  protocol     protocol @relation(fields: [protocol_id], references: [id], onDelete: NoAction)
-  vpn_key      vpn_keys @relation(fields: [vpn_key_id], references: [id], onDelete: NoAction)
+  id                   Int      @id @default(autoincrement())
+  user_id              Int
+  region_id            Int
+  traffic              Int
+  vpn_key_id           Int
+  protocol_id          Int
+  generated_at         DateTime @default(now())
+  user                 user     @relation(fields: [user_id], references: [id], onDelete: NoAction)
+  region               region   @relation(fields: [region_id], references: [id], onDelete: NoAction)
+  protocol             protocol @relation(fields: [protocol_id], references: [id], onDelete: NoAction)
+  vpn_key              vpn_keys @relation(fields: [vpn_key_id], references: [id], onDelete: NoAction)
 
   @@unique([user_id, vpn_key_id])
 }
@@ -232,8 +242,4 @@ model user_promocodes {
   @@unique([user_id, code_id])
 }
 
-model user_protocol {
-  id          Int @id @default(autoincrement())
-  user_id     Int @unique
-  protocol_id Int @default(1)
-}
+

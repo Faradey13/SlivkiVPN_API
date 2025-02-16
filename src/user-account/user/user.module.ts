@@ -6,10 +6,17 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { VlessVpnModule } from '../../VPN/vless-vpn/vless-vpn.module';
 import { OutlineVpnModule } from '../../VPN/outline-vpn/outline-vpn.module';
 import { PromoModule } from '../../commerce/promo/promo.module';
-
+import { VpnProtocolModule } from '../../VPN/vpn-protocol/vpn-protocol.module';
 
 @Module({
-  imports: [PrismaModule, VlessVpnModule, RoleModule, OutlineVpnModule, forwardRef(() => PromoModule)],
+  imports: [
+    PrismaModule,
+    VpnProtocolModule,
+    VlessVpnModule,
+    RoleModule,
+    OutlineVpnModule,
+    forwardRef(() => PromoModule),
+  ],
   providers: [UserService],
   controllers: [UserController],
   exports: [UserService],

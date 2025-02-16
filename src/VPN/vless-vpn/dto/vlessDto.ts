@@ -1,14 +1,22 @@
 import { IsString, IsNotEmpty, IsIn, IsInt, IsUUID, Min, IsNumber, IsOptional, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateOutlineServerDto {
+export class CreateVlessServerDto {
   @ApiProperty({
-    description: 'URL API сервера Outline',
+    description: 'URL API сервера Vless',
     example: 'https://example.com/api',
   })
   @IsString()
   @IsNotEmpty()
-  apiUrl: string;
+  api_url: string;
+
+  @ApiProperty({
+    description: 'URL который указывается в ключе',
+    example: 'https://example.com/api',
+  })
+  @IsString()
+  @IsNotEmpty()
+  key_url: string;
 
   @ApiProperty({
     description: 'Имя пользователя для подключения',
@@ -87,16 +95,15 @@ export class CreateOutlineServerDto {
   flow: string;
 
   @ApiProperty({
-    description: 'id кугиона',
-    example: 1,
+    description: 'имя региона',
+    example: 'Германия',
   })
   @IsInt()
   @IsNotEmpty()
-  regionId: number;
+  regionName: string;
 }
 
 export class AddVlessClientDto {
-
   @ApiProperty({ description: 'ID клиента', example: '144' })
   @IsUUID()
   id: string;

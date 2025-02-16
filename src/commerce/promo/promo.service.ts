@@ -12,7 +12,6 @@ import { ReferralService } from '../referral/referral.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { PinoLogger } from 'nestjs-pino';
-import { a } from 'pino-loki/shared/pino-loki.7752179f';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()

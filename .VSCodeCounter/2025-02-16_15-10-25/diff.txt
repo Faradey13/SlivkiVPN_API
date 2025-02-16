@@ -1,0 +1,320 @@
+Date : 2025-02-16 15:10:25
+Directory : c:\Users\johnn\WebstormProjects\slivki-vpn_api\src
+Total : 187 files,  383 codes, 3 comments, 31 blanks, all 417 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| TypeScript |        187 |        383 |          3 |         31 |        417 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                   |        187 |        383 |          3 |         31 |        417 |
+| . (Files)                                                                                                           |          1 |          1 |          0 |          0 |          1 |
+| VPN                                                                                                                 |         39 |      2,582 |         53 |        338 |      2,973 |
+| VPN\outline-vpn                                                                                                     |          6 |        570 |          2 |         63 |        635 |
+| VPN\outline-vpn (Files)                                                                                             |          3 |        431 |          2 |         37 |        470 |
+| VPN\outline-vpn\dto                                                                                                 |          1 |        111 |          0 |         16 |        127 |
+| VPN\outline-vpn\tests                                                                                               |          2 |         28 |          0 |         10 |         38 |
+| VPN\payment                                                                                                         |          6 |        437 |          0 |         69 |        506 |
+| VPN\payment (Files)                                                                                                 |          3 |        315 |          0 |         37 |        352 |
+| VPN\payment\dto                                                                                                     |          1 |         94 |          0 |         22 |        116 |
+| VPN\payment\tests                                                                                                   |          2 |         28 |          0 |         10 |         38 |
+| VPN\region                                                                                                          |          6 |        283 |          0 |         32 |        315 |
+| VPN\region (Files)                                                                                                  |          3 |        237 |          0 |         17 |        254 |
+| VPN\region\dto                                                                                                      |          1 |         18 |          0 |          5 |         23 |
+| VPN\region\tests                                                                                                    |          2 |         28 |          0 |         10 |         38 |
+| VPN\subscription                                                                                                    |         10 |        554 |         51 |         57 |        662 |
+| VPN\subscription (Files)                                                                                            |          6 |        478 |         51 |         38 |        567 |
+| VPN\subscription\dto                                                                                                |          2 |         48 |          0 |          9 |         57 |
+| VPN\subscription\tests                                                                                              |          2 |         28 |          0 |         10 |         38 |
+| VPN\vless-vpn                                                                                                       |          6 |        533 |          0 |         81 |        614 |
+| VPN\vless-vpn (Files)                                                                                               |          3 |        375 |          0 |         48 |        423 |
+| VPN\vless-vpn\dto                                                                                                   |          1 |        130 |          0 |         23 |        153 |
+| VPN\vless-vpn\tests                                                                                                 |          2 |         28 |          0 |         10 |         38 |
+| VPN\vpn-protocol                                                                                                    |          5 |        205 |          0 |         36 |        241 |
+| VPN\vpn-protocol (Files)                                                                                            |          3 |        177 |          0 |         26 |        203 |
+| VPN\vpn-protocol\tests                                                                                              |          2 |         28 |          0 |         10 |         38 |
+| auth                                                                                                                |         13 |       -984 |          0 |        -92 |     -1,076 |
+| auth (Files)                                                                                                        |          9 |       -853 |          0 |        -75 |       -928 |
+| auth\dto                                                                                                            |          2 |       -103 |          0 |         -7 |       -110 |
+| auth\tests                                                                                                          |          2 |        -28 |          0 |        -10 |        -38 |
+| commerce                                                                                                            |         12 |        687 |          0 |         84 |        771 |
+| commerce\promo                                                                                                      |          6 |        524 |          0 |         54 |        578 |
+| commerce\promo (Files)                                                                                              |          3 |        427 |          0 |         28 |        455 |
+| commerce\promo\dto                                                                                                  |          1 |         69 |          0 |         16 |         85 |
+| commerce\promo\tests                                                                                                |          2 |         28 |          0 |         10 |         38 |
+| commerce\referral                                                                                                   |          6 |        163 |          0 |         30 |        193 |
+| commerce\referral (Files)                                                                                           |          3 |        125 |          0 |         17 |        142 |
+| commerce\referral\dto                                                                                               |          1 |         10 |          0 |          3 |         13 |
+| commerce\referral\tests                                                                                             |          2 |         28 |          0 |         10 |         38 |
+| outline-vpn                                                                                                         |          6 |       -571 |         -2 |        -63 |       -636 |
+| outline-vpn (Files)                                                                                                 |          3 |       -432 |         -2 |        -37 |       -471 |
+| outline-vpn\dto                                                                                                     |          1 |       -111 |          0 |        -16 |       -127 |
+| outline-vpn\tests                                                                                                   |          2 |        -28 |          0 |        -10 |        -38 |
+| payment                                                                                                             |          6 |       -438 |          0 |        -68 |       -506 |
+| payment (Files)                                                                                                     |          3 |       -316 |          0 |        -36 |       -352 |
+| payment\dto                                                                                                         |          1 |        -94 |          0 |        -22 |       -116 |
+| payment\tests                                                                                                       |          2 |        -28 |          0 |        -10 |        -38 |
+| promo                                                                                                               |          6 |       -524 |          0 |        -54 |       -578 |
+| promo (Files)                                                                                                       |          3 |       -427 |          0 |        -28 |       -455 |
+| promo\dto                                                                                                           |          1 |        -69 |          0 |        -16 |        -85 |
+| promo\tests                                                                                                         |          2 |        -28 |          0 |        -10 |        -38 |
+| referral                                                                                                            |          6 |       -163 |          0 |        -31 |       -194 |
+| referral (Files)                                                                                                    |          3 |       -125 |          0 |        -18 |       -143 |
+| referral\dto                                                                                                        |          1 |        -10 |          0 |         -3 |        -13 |
+| referral\tests                                                                                                      |          2 |        -28 |          0 |        -10 |        -38 |
+| region                                                                                                              |          6 |       -283 |          0 |        -32 |       -315 |
+| region (Files)                                                                                                      |          3 |       -237 |          0 |        -17 |       -254 |
+| region\dto                                                                                                          |          1 |        -18 |          0 |         -5 |        -23 |
+| region\tests                                                                                                        |          2 |        -28 |          0 |        -10 |        -38 |
+| role                                                                                                                |          6 |       -143 |          0 |        -27 |       -170 |
+| role (Files)                                                                                                        |          3 |       -105 |          0 |        -15 |       -120 |
+| role\dto                                                                                                            |          1 |        -10 |          0 |         -2 |        -12 |
+| role\tests                                                                                                          |          2 |        -28 |          0 |        -10 |        -38 |
+| statistic                                                                                                           |          2 |         38 |          0 |          0 |         38 |
+| subscription                                                                                                        |         10 |       -553 |        -52 |        -57 |       -662 |
+| subscription (Files)                                                                                                |          6 |       -477 |        -52 |        -38 |       -567 |
+| subscription\dto                                                                                                    |          2 |        -48 |          0 |         -9 |        -57 |
+| subscription\tests                                                                                                  |          2 |        -28 |          0 |        -10 |        -38 |
+| task                                                                                                                |          1 |        -14 |          0 |         -5 |        -19 |
+| task\tests                                                                                                          |          1 |        -14 |          0 |         -5 |        -19 |
+| telegram-bot                                                                                                        |         15 |        218 |          4 |         20 |        242 |
+| telegram-bot (Files)                                                                                                |          1 |         11 |          0 |         -1 |         10 |
+| telegram-bot\handlers                                                                                               |         13 |        151 |          0 |         16 |        167 |
+| telegram-bot\handlers\VPN                                                                                           |         12 |        151 |          0 |         15 |        166 |
+| telegram-bot\handlers\VPN (Files)                                                                                   |          6 |         16 |          0 |          2 |         18 |
+| telegram-bot\handlers\VPN\downloadApps                                                                              |          6 |        135 |          0 |         13 |        148 |
+| telegram-bot\handlers\payment                                                                                       |          1 |          0 |          0 |          1 |          1 |
+| telegram-bot\text&buttons                                                                                           |          1 |         56 |          4 |          5 |         65 |
+| token                                                                                                               |          5 |       -259 |          0 |        -26 |       -285 |
+| token (Files)                                                                                                       |          3 |       -211 |          0 |        -16 |       -227 |
+| token\dto                                                                                                           |          1 |        -34 |          0 |         -5 |        -39 |
+| token\tests                                                                                                         |          1 |        -14 |          0 |         -5 |        -19 |
+| user                                                                                                                |          9 |       -522 |          0 |        -64 |       -586 |
+| user (Files)                                                                                                        |          3 |       -415 |          0 |        -40 |       -455 |
+| user-account                                                                                                        |         33 |      1,919 |          0 |        209 |      2,128 |
+| user-account\auth                                                                                                   |         13 |        984 |          0 |         93 |      1,077 |
+| user-account\auth (Files)                                                                                           |          9 |        853 |          0 |         76 |        929 |
+| user-account\auth\dto                                                                                               |          2 |        103 |          0 |          7 |        110 |
+| user-account\auth\tests                                                                                             |          2 |         28 |          0 |         10 |         38 |
+| user-account\role                                                                                                   |          6 |        141 |          0 |         26 |        167 |
+| user-account\role (Files)                                                                                           |          3 |        103 |          0 |         14 |        117 |
+| user-account\role\dto                                                                                               |          1 |         10 |          0 |          2 |         12 |
+| user-account\role\tests                                                                                             |          2 |         28 |          0 |         10 |         38 |
+| user-account\token                                                                                                  |          5 |        259 |          0 |         26 |        285 |
+| user-account\token (Files)                                                                                          |          3 |        211 |          0 |         16 |        227 |
+| user-account\token\dto                                                                                              |          1 |         34 |          0 |          5 |         39 |
+| user-account\token\tests                                                                                            |          1 |         14 |          0 |          5 |         19 |
+| user-account\user                                                                                                   |          9 |        535 |          0 |         64 |        599 |
+| user-account\user (Files)                                                                                           |          3 |        428 |          0 |         40 |        468 |
+| user-account\user\dto                                                                                               |          4 |         79 |          0 |         14 |         93 |
+| user-account\user\tests                                                                                             |          2 |         28 |          0 |         10 |         38 |
+| user\dto                                                                                                            |          4 |        -79 |          0 |        -14 |        -93 |
+| user\tests                                                                                                          |          2 |        -28 |          0 |        -10 |        -38 |
+| vless-vpn                                                                                                           |          6 |       -484 |          0 |        -74 |       -558 |
+| vless-vpn (Files)                                                                                                   |          3 |       -333 |          0 |        -42 |       -375 |
+| vless-vpn\dto                                                                                                       |          1 |       -123 |          0 |        -22 |       -145 |
+| vless-vpn\tests                                                                                                     |          2 |        -28 |          0 |        -10 |        -38 |
+| vpn-protocol                                                                                                        |          5 |       -124 |          0 |        -27 |       -151 |
+| vpn-protocol (Files)                                                                                                |          3 |        -96 |          0 |        -17 |       -113 |
+| vpn-protocol\tests                                                                                                  |          2 |        -28 |          0 |        -10 |        -38 |
++---------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                                            | language   | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\outline-vpn\dto\outline.dto.ts                               | TypeScript |        111 |          0 |         16 |        127 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\outline-vpn\outline-vpn.controller.ts                        | TypeScript |        107 |          0 |          7 |        114 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\outline-vpn\outline-vpn.module.ts                            | TypeScript |         13 |          0 |          2 |         15 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\outline-vpn\outline-vpn.service.ts                           | TypeScript |        311 |          2 |         28 |        341 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\outline-vpn\tests\outline-vpn.controller.spec.ts             | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\outline-vpn\tests\outline-vpn.service.spec.ts                | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\payment\dto\payment.dto.ts                                   | TypeScript |         94 |          0 |         22 |        116 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\payment\payment.controller.ts                                | TypeScript |          3 |          0 |          2 |          5 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\payment\payment.module.ts                                    | TypeScript |         24 |          0 |          2 |         26 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\payment\payment.service.ts                                   | TypeScript |        288 |          0 |         33 |        321 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\payment\tests\payment.controller.spec.ts                     | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\payment\tests\payment.service.spec.ts                        | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\region\dto\regionDto.ts                                      | TypeScript |         18 |          0 |          5 |         23 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\region\region.controller.ts                                  | TypeScript |        100 |          0 |          5 |        105 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\region\region.module.ts                                      | TypeScript |         12 |          0 |          2 |         14 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\region\region.service.ts                                     | TypeScript |        125 |          0 |         10 |        135 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\region\tests\region.controller.spec.ts                       | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\region\tests\region.service.spec.ts                          | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\subscription\FindUserForWarning.processor.ts                 | TypeScript |         36 |          0 |          4 |         40 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\subscription\dto\subPlanDto.ts                               | TypeScript |         24 |          0 |          6 |         30 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\subscription\dto\subscriptionDto.ts                          | TypeScript |         24 |          0 |          3 |         27 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\subscription\endOldSubscription.processor.ts                 | TypeScript |         35 |          0 |          4 |         39 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\subscription\subscription-plan.service.ts                    | TypeScript |        102 |          0 |          8 |        110 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\subscription\subscription.controller.ts                      | TypeScript |        128 |          0 |          8 |        136 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\subscription\subscription.module.ts                          | TypeScript |         36 |          0 |          2 |         38 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\subscription\subscription.service.ts                         | TypeScript |        141 |         51 |         12 |        204 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\subscription\tests\subscription.controller.spec.ts           | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\subscription\tests\subscription.service.spec.ts              | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vless-vpn\dto\vlessDto.ts                                    | TypeScript |        130 |          0 |         23 |        153 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vless-vpn\tests\vless-vpn.controller.spec.ts                 | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vless-vpn\tests\vless-vpn.service.spec.ts                    | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vless-vpn\vless-vpn.controller.ts                            | TypeScript |         75 |          0 |          8 |         83 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vless-vpn\vless-vpn.module.ts                                | TypeScript |         13 |          0 |          2 |         15 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vless-vpn\vless-vpn.service.ts                               | TypeScript |        287 |          0 |         38 |        325 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vpn-protocol\tests\vpn-protocol.controller.spec.ts           | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vpn-protocol\tests\vpn-protocol.service.spec.ts              | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vpn-protocol\vpn-protocol.controller.ts                      | TypeScript |         17 |          0 |          3 |         20 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vpn-protocol\vpn-protocol.module.ts                          | TypeScript |         11 |          0 |          2 |         13 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vpn-protocol\vpn-protocol.service.ts                         | TypeScript |        149 |          0 |         21 |        170 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\auth.controller.ts                                          | TypeScript |       -200 |          0 |        -13 |       -213 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\auth.module.ts                                              | TypeScript |        -30 |          0 |         -2 |        -32 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\auth.service.ts                                             | TypeScript |       -174 |          0 |        -15 |       -189 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\auth_google.controller.ts                                   | TypeScript |        -44 |          0 |         -5 |        -49 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\auth_google.service.ts                                      | TypeScript |        -42 |          0 |         -5 |        -47 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\auth_telegram.controller.ts                                 | TypeScript |        -97 |          0 |         -9 |       -106 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\auth_telegram.service.ts                                    | TypeScript |        -88 |          0 |         -7 |        -95 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\auth_yandex.controller.ts                                   | TypeScript |        -55 |          0 |         -6 |        -61 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\auth_yandex.service.ts                                      | TypeScript |       -123 |          0 |        -13 |       -136 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\dto\telegramAuth.dto.ts                                     | TypeScript |        -56 |          0 |         -5 |        -61 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\dto\yandexAuth.dto.ts                                       | TypeScript |        -47 |          0 |         -2 |        -49 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\tests\auth.controller.spec.ts                               | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\auth\tests\auth.service.spec.ts                                  | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\promo\dto\promo.dto.ts                                  | TypeScript |         69 |          0 |         16 |         85 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\promo\promo.controller.ts                               | TypeScript |        153 |          0 |          7 |        160 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\promo\promo.module.ts                                   | TypeScript |         12 |          0 |          2 |         14 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\promo\promo.service.ts                                  | TypeScript |        262 |          0 |         19 |        281 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\promo\tests\promo.controller.spec.ts                    | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\promo\tests\promo.service.spec.ts                       | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\referral\dto\referral.dto.ts                            | TypeScript |         10 |          0 |          3 |         13 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\referral\referral.controller.ts                         | TypeScript |          6 |          0 |          2 |          8 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\referral\referral.module.ts                             | TypeScript |         12 |          0 |          2 |         14 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\referral\referral.service.ts                            | TypeScript |        107 |          0 |         13 |        120 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\referral\tests\referral.controller.spec.ts              | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\commerce\referral\tests\referral.service.spec.ts                 | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\main.ts                                                          | TypeScript |          1 |          0 |          0 |          1 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\outline-vpn\dto\outline.dto.ts                                   | TypeScript |       -111 |          0 |        -16 |       -127 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\outline-vpn\outline-vpn.controller.ts                            | TypeScript |       -108 |          0 |         -7 |       -115 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\outline-vpn\outline-vpn.module.ts                                | TypeScript |        -13 |          0 |         -2 |        -15 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\outline-vpn\outline-vpn.service.ts                               | TypeScript |       -311 |         -2 |        -28 |       -341 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\outline-vpn\tests\outline-vpn.controller.spec.ts                 | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\outline-vpn\tests\outline-vpn.service.spec.ts                    | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\payment\dto\payment.dto.ts                                       | TypeScript |        -94 |          0 |        -22 |       -116 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\payment\payment.controller.ts                                    | TypeScript |         -3 |          0 |         -2 |         -5 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\payment\payment.module.ts                                        | TypeScript |        -24 |          0 |         -2 |        -26 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\payment\payment.service.ts                                       | TypeScript |       -289 |          0 |        -32 |       -321 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\payment\tests\payment.controller.spec.ts                         | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\payment\tests\payment.service.spec.ts                            | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\promo\dto\promo.dto.ts                                           | TypeScript |        -69 |          0 |        -16 |        -85 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\promo\promo.controller.ts                                        | TypeScript |       -153 |          0 |         -7 |       -160 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\promo\promo.module.ts                                            | TypeScript |        -12 |          0 |         -2 |        -14 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\promo\promo.service.ts                                           | TypeScript |       -262 |          0 |        -19 |       -281 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\promo\tests\promo.controller.spec.ts                             | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\promo\tests\promo.service.spec.ts                                | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\referral\dto\referral.dto.ts                                     | TypeScript |        -10 |          0 |         -3 |        -13 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\referral\referral.controller.ts                                  | TypeScript |         -6 |          0 |         -2 |         -8 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\referral\referral.module.ts                                      | TypeScript |        -12 |          0 |         -2 |        -14 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\referral\referral.service.ts                                     | TypeScript |       -107 |          0 |        -14 |       -121 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\referral\tests\referral.controller.spec.ts                       | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\referral\tests\referral.service.spec.ts                          | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\region\dto\regionDto.ts                                          | TypeScript |        -18 |          0 |         -5 |        -23 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\region\region.controller.ts                                      | TypeScript |       -100 |          0 |         -5 |       -105 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\region\region.module.ts                                          | TypeScript |        -13 |          0 |         -2 |        -15 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\region\region.service.ts                                         | TypeScript |       -124 |          0 |        -10 |       -134 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\region\tests\region.controller.spec.ts                           | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\region\tests\region.service.spec.ts                              | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\role\dto\createRoleDto.ts                                        | TypeScript |        -10 |          0 |         -2 |        -12 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\role\role.controller.ts                                          | TypeScript |        -48 |          0 |         -6 |        -54 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\role\role.module.ts                                              | TypeScript |        -18 |          0 |         -3 |        -21 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\role\role.service.ts                                             | TypeScript |        -39 |          0 |         -6 |        -45 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\role\tests\role.controller.spec.ts                               | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\role\tests\role.service.spec.ts                                  | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\statistic\statistic.module.ts                                    | TypeScript |          2 |          0 |          0 |          2 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\statistic\statistic.service.ts                                   | TypeScript |         36 |          0 |          0 |         36 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\subscription\FindUserForWarning.processor.ts                     | TypeScript |        -36 |          0 |         -4 |        -40 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\subscription\dto\subPlanDto.ts                                   | TypeScript |        -24 |          0 |         -6 |        -30 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\subscription\dto\subscriptionDto.ts                              | TypeScript |        -24 |          0 |         -3 |        -27 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\subscription\endOldSubscription.processor.ts                     | TypeScript |        -35 |          0 |         -4 |        -39 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\subscription\subscription-plan.service.ts                        | TypeScript |       -102 |          0 |         -8 |       -110 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\subscription\subscription.controller.ts                          | TypeScript |       -128 |          0 |         -8 |       -136 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\subscription\subscription.module.ts                              | TypeScript |        -36 |          0 |         -2 |        -38 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\subscription\subscription.service.ts                             | TypeScript |       -140 |        -52 |        -12 |       -204 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\subscription\tests\subscription.controller.spec.ts               | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\subscription\tests\subscription.service.spec.ts                  | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\task\tests\task.service.spec.ts                                  | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\downloadApps\handleDowndoaldHiddify.ts | TypeScript |         22 |          0 |          3 |         25 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\downloadApps\handleDownloadOutline.ts  | TypeScript |         22 |          0 |          2 |         24 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\downloadApps\handleHiddifyMobile.ts    | TypeScript |         25 |          0 |          2 |         27 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\downloadApps\handleHiddifyPc.ts        | TypeScript |         22 |          0 |          2 |         24 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\downloadApps\handleOutlineMobile.ts    | TypeScript |         22 |          0 |          2 |         24 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\downloadApps\handleOutlinePC.ts        | TypeScript |         22 |          0 |          2 |         24 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\handleChangeProtocol.ts                | TypeScript |         31 |          0 |          3 |         34 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\handleDownloadOutline.ts               | TypeScript |        -22 |          0 |         -2 |        -24 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\handleGetKey.ts                        | TypeScript |         15 |          0 |          2 |         17 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\handleOutlineMobile.ts                 | TypeScript |        -22 |          0 |         -2 |        -24 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\handleOutlinePC.ts                     | TypeScript |        -22 |          0 |         -2 |        -24 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\handleProtocolsList.ts                 | TypeScript |         36 |          0 |          3 |         39 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\payment\handleFreePay.ts                   | TypeScript |          0 |          0 |          1 |          1 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\telegram-bot.module.ts                              | TypeScript |         11 |          0 |         -1 |         10 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\text&buttons\text&buttons.ts                        | TypeScript |         56 |          4 |          5 |         65 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\token\dto\tokenDto.ts                                            | TypeScript |        -34 |          0 |         -5 |        -39 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\token\tests\token.service.spec.ts                                | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\token\token.module.ts                                            | TypeScript |        -19 |          0 |         -2 |        -21 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\token\token.processor.ts                                         | TypeScript |        -29 |          0 |         -3 |        -32 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\token\token.service.ts                                           | TypeScript |       -163 |          0 |        -11 |       -174 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\auth.controller.ts                             | TypeScript |        200 |          0 |         13 |        213 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\auth.module.ts                                 | TypeScript |         30 |          0 |          2 |         32 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\auth.service.ts                                | TypeScript |        174 |          0 |         16 |        190 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\auth_google.controller.ts                      | TypeScript |         44 |          0 |          5 |         49 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\auth_google.service.ts                         | TypeScript |         42 |          0 |          5 |         47 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\auth_telegram.controller.ts                    | TypeScript |         97 |          0 |          9 |        106 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\auth_telegram.service.ts                       | TypeScript |         88 |          0 |          7 |         95 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\auth_yandex.controller.ts                      | TypeScript |         55 |          0 |          6 |         61 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\auth_yandex.service.ts                         | TypeScript |        123 |          0 |         13 |        136 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\dto\telegramAuth.dto.ts                        | TypeScript |         56 |          0 |          5 |         61 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\dto\yandexAuth.dto.ts                          | TypeScript |         47 |          0 |          2 |         49 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\tests\auth.controller.spec.ts                  | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\auth\tests\auth.service.spec.ts                     | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\role\dto\createRoleDto.ts                           | TypeScript |         10 |          0 |          2 |         12 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\role\role.controller.ts                             | TypeScript |         46 |          0 |          6 |         52 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\role\role.module.ts                                 | TypeScript |         18 |          0 |          2 |         20 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\role\role.service.ts                                | TypeScript |         39 |          0 |          6 |         45 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\role\tests\role.controller.spec.ts                  | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\role\tests\role.service.spec.ts                     | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\token\dto\tokenDto.ts                               | TypeScript |         34 |          0 |          5 |         39 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\token\tests\token.service.spec.ts                   | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\token\token.module.ts                               | TypeScript |         19 |          0 |          2 |         21 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\token\token.processor.ts                            | TypeScript |         29 |          0 |          3 |         32 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\token\token.service.ts                              | TypeScript |        163 |          0 |         11 |        174 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\user\dto\addRoleToUserDto.ts                        | TypeScript |         13 |          0 |          1 |         14 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\user\dto\banUserDto.ts                              | TypeScript |         16 |          0 |          3 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\user\dto\createUser.dto.ts                          | TypeScript |         15 |          0 |          3 |         18 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\user\dto\userDto.ts                                 | TypeScript |         35 |          0 |          7 |         42 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\user\tests\user.controller.spec.ts                  | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\user\tests\user.service.spec.ts                     | TypeScript |         14 |          0 |          5 |         19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\user\user.controller.ts                             | TypeScript |        104 |          0 |          7 |        111 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\user\user.module.ts                                 | TypeScript |         23 |          0 |          2 |         25 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user-account\user\user.service.ts                                | TypeScript |        301 |          0 |         31 |        332 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user\dto\addRoleToUserDto.ts                                     | TypeScript |        -13 |          0 |         -1 |        -14 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user\dto\banUserDto.ts                                           | TypeScript |        -16 |          0 |         -3 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user\dto\createUser.dto.ts                                       | TypeScript |        -15 |          0 |         -3 |        -18 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user\dto\userDto.ts                                              | TypeScript |        -35 |          0 |         -7 |        -42 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user\tests\user.controller.spec.ts                               | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user\tests\user.service.spec.ts                                  | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user\user.controller.ts                                          | TypeScript |       -104 |          0 |         -7 |       -111 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user\user.module.ts                                              | TypeScript |        -15 |          0 |         -2 |        -17 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\user\user.service.ts                                             | TypeScript |       -296 |          0 |        -31 |       -327 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\vless-vpn\dto\vlessDto.ts                                        | TypeScript |       -123 |          0 |        -22 |       -145 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\vless-vpn\tests\vless-vpn.controller.spec.ts                     | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\vless-vpn\tests\vless-vpn.service.spec.ts                        | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\vless-vpn\vless-vpn.controller.ts                                | TypeScript |        -88 |          0 |         -8 |        -96 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\vless-vpn\vless-vpn.module.ts                                    | TypeScript |        -12 |          0 |         -2 |        -14 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\vless-vpn\vless-vpn.service.ts                                   | TypeScript |       -233 |          0 |        -32 |       -265 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\vpn-protocol\tests\vpn-protocol.controller.spec.ts               | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\vpn-protocol\tests\vpn-protocol.service.spec.ts                  | TypeScript |        -14 |          0 |         -5 |        -19 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\vpn-protocol\vpn-protocol.controller.ts                          | TypeScript |        -17 |          0 |         -3 |        -20 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\vpn-protocol\vpn-protocol.module.ts                              | TypeScript |        -11 |          0 |         -2 |        -13 |
+| c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\vpn-protocol\vpn-protocol.service.ts                             | TypeScript |        -68 |          0 |        -12 |        -80 |
+| Total                                                                                                               |            |        383 |          3 |         31 |        417 |
++---------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

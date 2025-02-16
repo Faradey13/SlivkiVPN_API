@@ -26,6 +26,7 @@ async function bootstrap() {
   SwaggerModule.setup('/docs', app, document);
   app.useGlobalPipes();
   app.use(express.json());
+  app.enableShutdownHooks();
   const PORT = process.env.PORT || 5000;
   await app.listen(PORT, '0.0.0.0', () => console.log(`Server started on port ${PORT}`));
 }

@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context, Markup } from 'telegraf';
 import { StatisticService } from '../../statistic/statistic.service';
-import { SubscriptionService } from '../../VPN/subscription/subscription.service';
 import { UserService } from '../../user-account/user/user.service';
 import { OutlineVpnService } from '../../VPN/outline-vpn/outline-vpn.service';
+import { SubscriptionService } from '../../commerce/subscription/subscription.service';
 
 @Injectable()
 @Update()

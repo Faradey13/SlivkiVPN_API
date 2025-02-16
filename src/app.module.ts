@@ -8,10 +8,8 @@ import { TokenModule } from './user-account/token/token.module';
 import { AuthModule } from './user-account/auth/auth.module';
 import { RegionModule } from './VPN/region/region.module';
 import { VpnProtocolModule } from './VPN/vpn-protocol/vpn-protocol.module';
-import { SubscriptionModule } from './VPN/subscription/subscription.module';
 import { TelegramBotModule } from './telegram-bot/telegram-bot.module';
 import { ConfigModule } from '@nestjs/config';
-import { PaymentModule } from './VPN/payment/payment.module';
 import { ReferralModule } from './commerce/referral/referral.module';
 import { PromoModule } from './commerce/promo/promo.module';
 import { StatisticModule } from './statistic/statistic.module';
@@ -23,6 +21,8 @@ import { EmailModule } from './email/email.module';
 import { HealthCheckModule } from './health-check/health-check.module';
 import { VlessVpnModule } from './VPN/vless-vpn/vless-vpn.module';
 import moment from 'moment-timezone';
+import { SubscriptionModule } from './commerce/subscription/subscription.module';
+import { PaymentModule } from './commerce/payment/payment.module';
 
 @Module({
   imports: [

@@ -1,0 +1,6 @@
+"filename", "language", "TypeScript", "comment", "blank", "total"
+"c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\outline-vpn\outline-vpn.service.ts", "TypeScript", -12, -1, -1, -14
+"c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\VPN\vless-vpn\vless-vpn.service.ts", "TypeScript", 4, 0, 0, 4
+"c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\handleChangeRegion.ts", "TypeScript", 2, 0, 0, 2
+"c:\Users\johnn\WebstormProjects\slivki-vpn_api\src\telegram-bot\handlers\VPN\handleGetKey.ts", "TypeScript", 1, 0, 0, 1
+"Total", "-", -5, -1, -1, -7

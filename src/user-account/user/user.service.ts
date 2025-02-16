@@ -12,6 +12,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { VlessVpnService } from '../../VPN/vless-vpn/vless-vpn.service';
 import { OutlineVpnService } from '../../VPN/outline-vpn/outline-vpn.service';
 import { PromoService } from '../../commerce/promo/promo.service';
+import { VpnProtocolService } from '../../VPN/vpn-protocol/vpn-protocol.service';
 
 export type UserWithRoles = user & {
   roles: roles[];
@@ -26,6 +27,7 @@ export class UserService {
     private readonly vlessServer: VlessVpnService,
     private readonly PromoService: PromoService,
     private readonly outline: OutlineVpnService,
+    private readonly protocol: VpnProtocolService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.logger.setContext(UserService.name);
@@ -104,7 +106,10 @@ export class UserService {
           },
         });
         this.logger.info(`Запись в таблице free_subscription создана для пользователя с ID: ${user.id}`);
-        await this.prisma.user_protocol.create({ data: { user_id: user.id } });
+        const basic_protocol = await this.protocol.getProtocolByName(process.env.BASIC_PROTOCOL);
+        await this.prisma.user_protocol.create({
+          data: { user_id: user.id, protocol_id: basic_protocol.id },
+        });
         this.logger.info(`Запись в таблице user_protocol создана для пользователя с ID: ${user.id}`);
       });
     } catch (error) {

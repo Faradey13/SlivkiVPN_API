@@ -3,7 +3,6 @@ import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { OutlineVpnService } from './outline-vpn.service';
 import { createOutlineKeyDto, createOutlineServerDto, metricDto } from './dto/outline.dto';
 import { PinoLogger } from 'nestjs-pino';
-import { CreateOutlineServerDto } from '../vless-vpn/dto/vlessDto';
 import { server_outline } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { responsePromoDto } from '../../commerce/promo/dto/promo.dto';
@@ -69,7 +68,7 @@ export class OutlineVpnController {
 
   @Post('/new_server')
   @ApiOperation({ summary: 'Создание нового сервера Outline' })
-  @ApiBody({ type: CreateOutlineServerDto })
+  @ApiBody({ type: createOutlineServerDto })
   @ApiResponse({
     status: 201,
     description: 'Сервер Outline успешно создан',
@@ -105,7 +104,7 @@ export class OutlineVpnController {
   metric(@Body() dto: metricDto) {
     try {
       this.logger.info(`Получение метрик для региона ${dto.regionId}`);
-      return this.vpnKeysService.getMetrics(dto.regionId);
+      return this.vpnKeysService.getOutlineMetrics(dto.regionId);
     } catch (error) {
       this.logger.error(`Ошибка при получении метрик для региона: ${error.message}`);
       throw new BadRequestException(`Ошибка при получении метрик для региона: ${error.message}`);

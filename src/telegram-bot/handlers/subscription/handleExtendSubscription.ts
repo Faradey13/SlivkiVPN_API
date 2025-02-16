@@ -6,10 +6,10 @@ import { TelegramBotUtils } from '../../telegram-bot.utils';
 import { ExtendSubscription } from '../../text&buttons/text&buttons';
 import { UserService } from '../../../user-account/user/user.service';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { SubscriptionPlanService } from '../../../VPN/subscription/subscription-plan.service';
-import { PaymentService } from '../../../VPN/payment/payment.service';
-import { SubscriptionService } from '../../../VPN/subscription/subscription.service';
 import { PromoService } from '../../../commerce/promo/promo.service';
+import { SubscriptionPlanService } from '../../../commerce/subscription/subscription-plan.service';
+import { PaymentService } from '../../../commerce/payment/payment.service';
+import { SubscriptionService } from '../../../commerce/subscription/subscription.service';
 
 @Injectable()
 @Update()

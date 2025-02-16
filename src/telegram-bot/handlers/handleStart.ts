@@ -5,7 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { PinoLogger } from 'nestjs-pino';
 import { StartKeyboards, StartTexts } from '../text&buttons/text&buttons';
 import { UserService } from '../../user-account/user/user.service';
-import { SubscriptionService } from '../../VPN/subscription/subscription.service';
+import { SubscriptionService } from '../../commerce/subscription/subscription.service';
 
 @Injectable()
 @Update()

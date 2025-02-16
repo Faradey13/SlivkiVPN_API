@@ -6,10 +6,9 @@ import { CurrencyEnum, PaymentMethodsEnum, PaymentStatusEnum } from 'nestjs-yook
 import { PaymentConfirmHandler } from './handleConfirmPayment';
 import { UserService } from '../../../user-account/user/user.service';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { PaymentService } from '../../../VPN/payment/payment.service';
-import { SubscriptionPlanService } from '../../../VPN/subscription/subscription-plan.service';
-import { SubscriptionService } from '../../../VPN/subscription/subscription.service';
-
+import { PaymentService } from '../../../commerce/payment/payment.service';
+import { SubscriptionPlanService } from '../../../commerce/subscription/subscription-plan.service';
+import { SubscriptionService } from '../../../commerce/subscription/subscription.service';
 
 @Injectable()
 @Update()

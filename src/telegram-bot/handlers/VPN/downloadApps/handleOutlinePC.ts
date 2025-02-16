@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Action, Ctx, Update } from 'nestjs-telegraf';
 import { Context } from 'telegraf';
 import { PinoLogger } from 'nestjs-pino';
-import { keyboardPcOutline, textPcOutline } from '../../text&buttons/text&buttons';
-import { UserService } from '../../../user-account/user/user.service';
+import { keyboardPcOutline, textPcOutline } from '../../../text&buttons/text&buttons';
+import { UserService } from '../../../../user-account/user/user.service';
 
 @Injectable()
 @Update()

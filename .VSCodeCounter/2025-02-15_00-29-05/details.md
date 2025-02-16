@@ -93,11 +93,11 @@ Total : 139 files,  7240 codes, 212 comments, 897 blanks, all 8349 lines
 | [src/subscription/tests/subscription.service.spec.ts](/src/subscription/tests/subscription.service.spec.ts) | TypeScript | 14 | 0 | 5 | 19 |
 | [src/task/tests/task.service.spec.ts](/src/task/tests/task.service.spec.ts) | TypeScript | 14 | 0 | 5 | 19 |
 | [src/telegram-bot/handlers/VPN/handleChangeRegion.ts](/src/telegram-bot/handlers/VPN/handleChangeRegion.ts) | TypeScript | 34 | 0 | 3 | 37 |
-| [src/telegram-bot/handlers/VPN/handleDownloadOutline.ts](/src/telegram-bot/handlers/VPN/handleDownloadOutline.ts) | TypeScript | 22 | 0 | 2 | 24 |
+| [src/telegram-bot/handlers/VPN/handleDownloadOutline.ts](/src/telegram-bot/handlers/VPN/downloadApps/handleDownloadOutline.ts) | TypeScript | 22 | 0 | 2 | 24 |
 | [src/telegram-bot/handlers/VPN/handleGetKey.ts](/src/telegram-bot/handlers/VPN/handleGetKey.ts) | TypeScript | 108 | 0 | 5 | 113 |
 | [src/telegram-bot/handlers/VPN/handleGetSmartTvFile.ts](/src/telegram-bot/handlers/VPN/handleGetSmartTvFile.ts) | TypeScript | 106 | 0 | 13 | 119 |
-| [src/telegram-bot/handlers/VPN/handleOutlineMobile.ts](/src/telegram-bot/handlers/VPN/handleOutlineMobile.ts) | TypeScript | 22 | 0 | 2 | 24 |
-| [src/telegram-bot/handlers/VPN/handleOutlinePC.ts](/src/telegram-bot/handlers/VPN/handleOutlinePC.ts) | TypeScript | 22 | 0 | 2 | 24 |
+| [src/telegram-bot/handlers/VPN/handleOutlineMobile.ts](/src/telegram-bot/handlers/VPN/downloadApps/handleOutlineMobile.ts) | TypeScript | 22 | 0 | 2 | 24 |
+| [src/telegram-bot/handlers/VPN/handleOutlinePC.ts](/src/telegram-bot/handlers/VPN/downloadApps/handleOutlinePC.ts) | TypeScript | 22 | 0 | 2 | 24 |
 | [src/telegram-bot/handlers/VPN/handleSmartTvRegion.ts](/src/telegram-bot/handlers/VPN/handleSmartTvRegion.ts) | TypeScript | 34 | 0 | 3 | 37 |
 | [src/telegram-bot/handlers/VPN/handleVpnMenu.ts](/src/telegram-bot/handlers/VPN/handleVpnMenu.ts) | TypeScript | 16 | 0 | 3 | 19 |
 | [src/telegram-bot/handlers/handleHelp.ts](/src/telegram-bot/handlers/handleHelp.ts) | TypeScript | 17 | 0 | 2 | 19 |
