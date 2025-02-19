@@ -15,7 +15,6 @@ export class EndOldSubscriptionProcessor extends WorkerHost {
   }
 
   async process() {
-    console.log('отключаем подписки');
     try {
       this.logger.info('Начало отключения просроченных подписок.');
       const subscriptions = await this.prisma.subscription.findMany({

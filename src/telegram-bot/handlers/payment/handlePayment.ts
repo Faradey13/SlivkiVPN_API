@@ -34,11 +34,12 @@ export class PaymentHandler {
     const user = await this.userService.getUserByTgId(ctx.from.id);
     const subscription = await this.subscription.getUserSubscription(user.id);
     const plan = await this.subscriptionPlans.getSubscriptionPlanById(planId);
-    const discount = await this.paymentService.getCurrentPromoCode(user.id);
-    const amount = this.paymentService.applyDiscount(plan.price, plan.isFree ? 0 : discount.discount);
+    const { discount, code, codeId } = await this.paymentService.getCurrentPromoCode(user.id);
+    const isYearly = plan.period !== 365 && code.type === 'yearly';
+    const amount = this.paymentService.applyDiscount(plan.price, plan.isFree || isYearly ? 0 : discount);
     this.logger.info(
       `Пользователь ID: ${user.id} оформляет покупку тарифа ${plan.id}, 
-      со скидкой ${discount.discount}, применен промокод: ${discount.codeId}, сумма покупки: ${amount}`,
+      со скидкой ${discount}, применен промокод: ${codeId}, сумма покупки: ${amount}`,
     );
 
     function isConfirmationRedirect(obj: Confirmation): obj is ConfirmationRedirect {
@@ -58,7 +59,6 @@ export class PaymentHandler {
           this.logger.info(`Статус платежа: ${status}`);
 
           if (status === 'waiting_for_capture') {
-            clearInterval(interval);
             await this.paymentService.capturePayment(reqData.id);
             await this.paymentService.onSuccessPayment(reqData);
             await this.PaymentConfirmHandler.handleConfirmPay(
@@ -66,6 +66,7 @@ export class PaymentHandler {
               plan.period,
               subscription ? subscription?.subscription_status : false,
             );
+            clearInterval(interval);
             this.logger.info('Платеж успешно завершен, интервал остановлен.');
           }
         } catch (error) {

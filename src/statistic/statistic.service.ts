@@ -32,7 +32,6 @@ export class StatisticService {
 
   async createStatistic() {
     try {
-      console.log('СБОР СТАТИСТИКИ');
       this.logger.info('Начало создания статистики по регионам');
       const regions = await this.region.getAllRegions();
       const serversVless = await this.vless.getAllVlessServers();
@@ -40,6 +39,10 @@ export class StatisticService {
       for (const server of serversVless) {
         for (const user of userSub) {
           const metric = await this.vless.getVlessMetric(user.user_id, server.id);
+          if (!metric) {
+            this.logger.warn(`Метрики для региона ${server.id} не найдены или пусты`);
+            continue;
+          }
           const totalBites = metric.up + metric.down;
           const vpnKey = await this.prisma.vpn_keys.findFirst({
             where: {
@@ -74,7 +77,6 @@ export class StatisticService {
         try {
           this.logger.info(`Получение метрик для сервера с ID: ${server.id}`);
           const regionMetrics = await this.outline.getOutlineMetrics(server.id);
-
           if (!regionMetrics || !regionMetrics.metrics.bytesTransferredByUserId) {
             this.logger.warn(`Метрики для региона ${server.id} не найдены или пусты`);
             continue;

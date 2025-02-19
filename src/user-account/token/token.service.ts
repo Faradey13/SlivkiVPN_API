@@ -4,33 +4,17 @@ import { TokenDto } from './dto/tokenDto';
 import { user } from '@prisma/client';
 import { UserService } from '../user/user.service';
 import { PinoLogger } from 'nestjs-pino';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
-export class TokenService implements OnModuleInit {
+export class TokenService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
     private readonly userService: UserService,
     private logger: PinoLogger,
-    @InjectQueue('removeOldToken') private readonly removeOldTokens: Queue,
   ) {
     this.logger.setContext(TokenService.name);
-  }
-
-  async onModuleInit() {
-    await this.removeOldTokens.add(
-      'removeOldTokens',
-      { jobData: 'every 20 minutes h data' },
-      {
-        repeat: {
-          pattern: '20 * * * *',
-        },
-        jobId: 'every-20-minutes-h-job',
-      },
-    );
   }
 
   async generateToken(payload: TokenDto) {

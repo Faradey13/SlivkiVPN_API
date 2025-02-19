@@ -8,12 +8,7 @@ import {
   YookassaService,
 } from 'nestjs-yookassa';
 import { SubscriptionService } from '../subscription/subscription.service';
-import {
-  currentPromoDto,
-  MetadataDto,
-  paymentDataDto,
-  preparingPaymentDataDto,
-} from './dto/payment.dto';
+import { currentPromoDto, MetadataDto, paymentDataDto, preparingPaymentDataDto } from './dto/payment.dto';
 import * as process from 'node:process';
 import { SubscriptionPlanService } from '../subscription/subscription-plan.service';
 import { PinoLogger } from 'nestjs-pino';
@@ -68,6 +63,7 @@ export class PaymentService {
         plan_id: preparedData.plan_id,
       },
     };
+    console.log(paymentData);
     this.logger.info(
       `Данные для платежа для пользователя ${preparedData.user_id} подготовлены:`,
       paymentData,
@@ -135,7 +131,7 @@ export class PaymentService {
       this.logger.info(`Идентификатор пользователя: ${userId}`);
       this.logger.info(`Обрабатываем promo_id: ${metadata.promo_id}`);
       let promoId: number | null = null;
-
+      console.log(metadata.promo_id, 'промо из меты');
       if (metadata.promo_id && metadata.promo_id !== 'undefined') {
         promoId = Number(metadata.promo_id);
         if (isNaN(promoId)) {
@@ -144,8 +140,7 @@ export class PaymentService {
       }
       if (promoId !== null) {
         const referral_user = await this.prisma.referral_user.findUnique({ where: { id: userId } });
-        const promoCode = await this.ReferralService.getUsersRefCode(userId);
-
+        const promoCode = await this.PromoService.getPromoCodeById(Number(metadata.promo_id));
         if (!promoCode) {
           this.logger.error('Промокод с ID не найден для пользователя %s', promoId, userId);
           throw new Error(`Promo code with ID ${promoId} not found`);
@@ -177,7 +172,9 @@ export class PaymentService {
         }
         if (promoCode.type !== 'referral') {
           const userPromoCode = await this.prisma.user_promocodes.findUnique({
-            where: { user_id_code_id: { user_id: userId, code_id: promoCode.id }, is_active: true },
+            where: {
+              user_id_code_id: { user_id: userId, code_id: promoCode.id },
+            },
           });
           if (!userPromoCode) {
             this.logger.error('Промокод для пользователя не найден', userId);
@@ -192,6 +189,7 @@ export class PaymentService {
               is_used: true,
               used_date: new Date(),
               is_active: false,
+              is_disabled: true,
             },
           });
 
@@ -302,9 +300,12 @@ export class PaymentService {
 
   async preparingPaymentData(dto: preparingPaymentDataDto): Promise<paymentDataDto> {
     this.logger.info('Подготовка данных для платежа пользователя', dto.userId);
-    const plan = await this.subscriptionPlans.getSubscriptionPlanById(dto.planId);
     const { codeId, discount } = await this.getCurrentPromoCode(dto.userId);
-    const amount = this.applyDiscount(plan.price, discount);
+    const plan = await this.subscriptionPlans.getSubscriptionPlanById(dto.planId);
+    const promoCode = await this.PromoService.getPromoCodeById(codeId);
+    const isNoYearly = plan.period !== 365 && promoCode.type === 'yearly';
+
+    const amount = this.applyDiscount(plan.price, isNoYearly ? 0 : discount);
     this.logger.info('Данные для платежа подготовлены для пользователя', dto.userId, {
       amount,
       description: `Платеж за подписку: ${plan.name} за ${amount}₽`,
@@ -313,7 +314,7 @@ export class PaymentService {
       amount: amount,
       description: `Платеж за подписку: ${plan.name} за ${amount}₽`,
       plan_id: String(dto.planId),
-      promo_id: codeId ? String(codeId) : 'без промокода',
+      promo_id: codeId && !isNoYearly ? String(codeId) : 'без промокода',
       user_id: String(dto.userId),
     };
   }

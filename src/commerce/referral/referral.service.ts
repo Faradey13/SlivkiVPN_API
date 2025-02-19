@@ -28,7 +28,7 @@ export class ReferralService {
 
       const refCode = await this.prisma.promo_codes.findFirst({
         where: {
-          referral_code_out: {
+          referral_code_in: {
             some: { user_id: userId },
           },
         },

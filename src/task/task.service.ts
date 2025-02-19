@@ -9,47 +9,62 @@ export class TaskService implements OnModuleInit {
     @InjectQueue('stopSubscriptions') private readonly stopSubscriptions: Queue,
     @InjectQueue('collectStatisticQueue') private readonly collectStatisticQueue: Queue,
     @InjectQueue('disablePromoCodes') private readonly disablePromoCodesProcessor: Queue,
+    @InjectQueue('removeOldToken') private readonly removeOldToken: Queue,
   ) {}
 
   async onModuleInit() {
-    await this.warningQueue.add(
-      'findUserForWarning',
-      { jobData: 'every 5 minutes h data' },
-      {
-        repeat: {
-          pattern: '*/2 * * * *',
-        },
-        jobId: 'every-5-minutes-h-job',
-      },
-    );
-    await this.stopSubscriptions.add(
-      'stopSubscriptions',
-      { jobData: 'every 15 minutes h data' },
-      {
-        repeat: {
-          pattern: '*/3 * * * *',
-        },
-        jobId: 'every-15-minutes-h-job',
-      },
-    );
-    await this.collectStatisticQueue.add(
-      'collect stats',
-      { jobData: 'every 5 minutes data' },
-      {
-        repeat: {
-          pattern: '*/1 * * * *',
-        },
-        jobId: 'every-10-minutes-h-job',
-      },
-    );
-    await this.disablePromoCodesProcessor.add(
-      'disablePromoCodes',
-      { jobData: 'every 1h' },
-      {
-        repeat: {
-          pattern: '*/5 * * * *',
-        },
-      },
-    );
+    //   await this.warningQueue.add(
+    //     'findUserForWarning',
+    //     { jobData: 'Запуск задачи для поиска пользователей с предупреждениями' },
+    //     {
+    //       repeat: {
+    //         pattern: '5 * * * *',
+    //       },
+    //       jobId: 'find-user-warning-every-hour',
+    //     },
+    //   );
+    //
+    //   await this.stopSubscriptions.add(
+    //     'stopSubscriptions',
+    //     { jobData: 'Запуск задачи для остановки подписок' },
+    //     {
+    //       repeat: {
+    //         pattern: '10 * * * *',
+    //       },
+    //       jobId: 'stop-subscriptions-every-hour',
+    //     },
+    //   );
+    //
+    //   await this.collectStatisticQueue.add(
+    //     'collectStats',
+    //     { jobData: 'Запуск задачи для сбора статистики' },
+    //     {
+    //       repeat: {
+    //         pattern: '15 * * * *',
+    //       },
+    //       jobId: 'collect-stats-every-hour',
+    //     },
+    //   );
+    //
+    //   await this.disablePromoCodesProcessor.add(
+    //     'disablePromoCodes',
+    //     { jobData: 'Запуск задачи для отключения промокодов' },
+    //     {
+    //       repeat: {
+    //         pattern: '20 * * * *',
+    //       },
+    //       jobId: 'disable-promo-codes-every-hour',
+    //     },
+    //   );
+    //   await this.removeOldToken.add(
+    //     'removeOldToken',
+    //     { jobData: 'Удаление старых токенов' },
+    //     {
+    //       repeat: {
+    //         pattern: '25 * * * *',
+    //       },
+    //       jobId: 'removeOldToken',
+    //     },
+    //   );
   }
 }

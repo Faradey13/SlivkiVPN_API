@@ -161,7 +161,12 @@ export const keyboardDownloadHiddify = Markup.inlineKeyboard([
 export const textMobileOutline = 'Выберите версию для скачивания:';
 
 export const keyboardMobileOutline = Markup.inlineKeyboard([
-  [Markup.button.url('🤖 Android', 'https://play.google.com/store/apps/details?id=org.outline.android.client')],
+  [
+    Markup.button.url(
+      '🤖 Android',
+      'https://play.google.com/store/apps/details?id=org.outline.android.client',
+    ),
+  ],
   [Markup.button.url('🍎 iOS', 'https://itunes.apple.com/app/outline-app/id1356177741')],
   [Markup.button.callback('⬅️ Назад к выбору платформы', 'download_outline')],
   [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
@@ -171,7 +176,12 @@ export const keyboardMobileOutline = Markup.inlineKeyboard([
 export const textMobileHiddify = 'Выберите версию для скачивания:';
 export const keyboardMobileHiddify = Markup.inlineKeyboard([
   [Markup.button.url('🤖 Android', 'https://play.google.com/store/apps/details?id=app.hiddify.com&pli=1')],
-  [Markup.button.url('🍎 iOS', 'https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532?platform=iphone')],
+  [
+    Markup.button.url(
+      '🍎 iOS',
+      'https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532?platform=iphone',
+    ),
+  ],
   [Markup.button.callback('⬅️ Назад к выбору платформы', 'download_hiddify')],
   [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
 ]);
@@ -204,8 +214,18 @@ export const textPcHiddify = `
 `;
 
 export const keyboardPcHiddify = Markup.inlineKeyboard([
-  [Markup.button.url('🍎 Mac M', 'https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532?platform=iphone')],
-  [Markup.button.url('🍎 Mac Intel', 'https://github.com/hiddify/hiddify-app/releases/latest/download/Hiddify-MacOS.dmg')],
+  [
+    Markup.button.url(
+      '🍎 Mac M',
+      'https://apps.apple.com/us/app/hiddify-proxy-vpn/id6596777532?platform=iphone',
+    ),
+  ],
+  [
+    Markup.button.url(
+      '🍎 Mac Intel',
+      'https://github.com/hiddify/hiddify-app/releases/latest/download/Hiddify-MacOS.dmg',
+    ),
+  ],
   [
     Markup.button.url(
       '🪟 Windows',
@@ -255,7 +275,12 @@ export const VpnForSmartTv = {
   },
   endKeyboards() {
     return Markup.inlineKeyboard([
-      [Markup.button.url('📺 Инструкция', 'https://telegra.ph/Instrukciya-po-ustanovke-Slivki-VPN-na-Smart-TV-09-24')],
+      [
+        Markup.button.url(
+          '📺 Инструкция',
+          'https://telegra.ph/Instrukciya-po-ustanovke-Slivki-VPN-na-Smart-TV-09-24',
+        ),
+      ],
       [Markup.button.callback('⬅️ Назад', 'smart_tv_key')],
       [Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')],
     ]);
@@ -310,20 +335,23 @@ export const ExtendSubscription = {
     return isSub ? 'Выберите срок продления подписки:' : 'Выберите срок подписки:';
     // ? : - тернарный оператор, если isSub true берется первая часть, если нет то после :
   },
-  purchaseText(type: string, discount: number, code: string) {
+  purchaseText(type: string, discount: number, code: string, isSub: boolean) {
     return `К покупке ${type === 'yearly' ? 'годового тарифа' : ''} будет применена скидка ${discount}% по промокоду ${code}
       Вы можете ${type === 'yearly' ? 'изменить промокод' : 'выбрать другой промокод'} ${type === 'yearly' ? 'если вы хотите купить другой период подписки со скидкой' : ''}
-      ${this.subscriptionStatusTExt}`;
+      ${this.subscriptionStatusTExt(isSub)}`;
     // тут короче если применен промокод годовой выводится: К покупке годового тарифа удет применена скидка .. по промокоду ..
     // Вы можете изменить промокод если вы хотите купить другой период подписки со скидкой,
     // а если промокод обычный: К покупке будет применена скидка .. % по промокоду ..
     //Вы можете выбрать другой промокод
     // а ниже уже выводится продление или покупка, текст выше
   },
-  purchaseNoPromoText() {
+  purchaseNoActivePromoText(isSub) {
     return `У вас есть промокоды которые можно применить к покупке. Нажмите 'применить другой промокод'
       
-         ${this.subscriptionStatusTExt}`;
+         ${this.subscriptionStatusTExt(isSub)}`;
+  },
+  purchaseNoPromoText(isSub) {
+    return `${this.subscriptionStatusTExt(isSub)}`;
   },
 };
 
@@ -360,13 +388,13 @@ export const successfulPayment = {
 // Страница промокодов
 
 export const PromoCodes = {
-  text(userPromoCodesNotActive: promo_codes[]) {
+  text(userPromoCodesNotActive: promo_codes[], botUtils: any) {
     return ` 
 Добавленные промокоды которые вы можете применить при оплате:
 ${userPromoCodesNotActive
   .map(
     (code) =>
-      `- ${code.code} дает скидку - ${code.discount}%, нужно активировать в течении ${this.botUtils.daysUntilEnd(code.created_at, code.period)} дня(ей)`,
+      `- ${code.code} дает скидку - ${code.discount}%, нужно активировать в течении ${botUtils.daysUntilEnd(code.created_at, code.period)} дня(ей)`,
   )
   .join('\n')}
       `; // тут из массива ключей получаем строки с промиком, его скидкой и днями до сгорания, в сообщении это смотрелось очень массивно, надо лаконичнее

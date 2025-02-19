@@ -19,7 +19,7 @@ export class PromoController {
     this.logger.setContext(PromoController.name);
   }
 
-  @ApiOperation({ summary: 'Создание нового промокода' })
+  @ApiOperation({ summary: 'Создание нового промокода, promotion - общий тип, yearly - работает только на годовую подписку' })
   @ApiResponse({
     status: 200,
     description: 'Промокод успешно создан.',

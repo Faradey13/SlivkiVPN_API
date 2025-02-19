@@ -196,7 +196,7 @@ export class PromoService {
   async getActivePromoCode(userId: number) {
     this.logger.info('Поиск уникального активного промокода');
     const activeCodes = await this.prisma.user_promocodes.findMany({
-      where: { user_id: userId, is_active: true },
+      where: { user_id: userId, is_active: true, is_disabled: false },
     });
     if (activeCodes.length === 0) return null;
     if (activeCodes.length === 1) return this.getPromoCodeById(activeCodes.at(0).code_id);
@@ -222,8 +222,30 @@ export class PromoService {
   async getNoActivePromoCode(userId: number) {
     try {
       const userPromoCodesNotActive = await this.prisma.promo_codes.findMany({
-        where: { user_promocodes: { some: { user_id: userId, is_active: false, is_used: false } } },
+        where: {
+          user_promocodes: {
+            some: { user_id: userId, is_active: false, is_used: false, is_disabled: false },
+          },
+        },
       });
+      console.log(userPromoCodesNotActive);
+      this.logger.info(`Для пользователя ${userId} найдены не активные промокоды`);
+      return userPromoCodesNotActive;
+    } catch {
+      this.logger.error(`Ошибка поиска не активных промокодов для полльзователя ${userId}`);
+    }
+  }
+
+  async getAvailablePromoCode(userId: number) {
+    try {
+      const userPromoCodesNotActive = await this.prisma.promo_codes.findMany({
+        where: {
+          user_promocodes: {
+            some: { user_id: userId,  is_used: false, is_disabled: false },
+          },
+        },
+      });
+      console.log(userPromoCodesNotActive);
       this.logger.info(`Для пользователя ${userId} найдены не активные промокоды`);
       return userPromoCodesNotActive;
     } catch {
@@ -283,6 +305,4 @@ export class PromoService {
     if (!findCode) return null;
     await this.prisma.user_promocodes.update({ where: { id: promoCodeId }, data: { is_disabled: true } });
   }
-
-  async findOldCode() {}
 }

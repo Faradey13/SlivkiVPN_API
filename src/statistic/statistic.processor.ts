@@ -13,7 +13,6 @@ export class StatisticProcessor extends WorkerHost {
   }
 
   async process() {
-    console.log('сбор статистики');
     this.logger.info('запуск воркера из очереди collectStatisticQueue');
     await this.statistic.createStatistic();
   }

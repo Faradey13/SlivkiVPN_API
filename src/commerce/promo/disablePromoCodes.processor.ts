@@ -15,7 +15,6 @@ export class disablePromoCodesProcessor extends WorkerHost {
   }
 
   async process() {
-    console.log('отключаем промокоды');
     try {
       this.logger.info('Начало отключения просроченных промокодов.');
       const oldCodes = await this.prisma.user_promocodes.findMany({

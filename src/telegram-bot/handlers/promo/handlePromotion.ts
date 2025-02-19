@@ -5,6 +5,7 @@ import { PinoLogger } from 'nestjs-pino';
 import { PromoCodes } from '../../text&buttons/text&buttons';
 import { UserService } from '../../../user-account/user/user.service';
 import { PromoService } from '../../../commerce/promo/promo.service';
+import { TelegramBotUtils } from '../../telegram-bot.utils';
 
 @Injectable()
 @Update()
@@ -14,6 +15,7 @@ export class PromotionHandler {
     private readonly userService: UserService,
     private readonly promo: PromoService,
     private readonly logger: PinoLogger,
+    private readonly botUtils: TelegramBotUtils,
   ) {
     this.logger.setContext(PromotionHandler.name);
   }
@@ -24,7 +26,7 @@ export class PromotionHandler {
     this.logger.info(
       `Пользователь ID: ${user.id} зашел на страницу с иеформацие о своих действующих промокодах`,
     );
-    const userPromoCodesNotActive = await this.promo.getNoActivePromoCode(user.id);
-    await ctx.editMessageText(PromoCodes.text(userPromoCodesNotActive), PromoCodes.keyboard());
+    const userPromoCodesNotActive = await this.promo.getAvailablePromoCode(user.id);
+    await ctx.editMessageText(PromoCodes.text(userPromoCodesNotActive, this.botUtils), PromoCodes.keyboard());
   }
 }

@@ -51,27 +51,20 @@ export class VlessVpnService {
     }
   }
 
-  async addClient(sessionId: string, clientData: AddVlessClientDto) {
+  async addClient(sessionId: string, ApiUrl: string, clientData: AddVlessClientDto) {
     try {
       const data = {
         id: 1,
         settings: JSON.stringify({ clients: [clientData] }),
       };
-      console.log(data);
-      const config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: 'http://138.124.115.185:12144/R35c0HVMFQSS5g8/panel/api/inbounds/addClient',
+      const response = await axios.post(`${ApiUrl}/panel/api/inbounds/addClient`, data, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
           Cookie: `3x-ui=${sessionId}`,
         },
-        data: data,
-      };
-
-      const response = await axios.request(config);
-      console.log(response.data);
+      });
+      console.log(response.data, clientData);
       return response.data;
     } catch (error) {
       console.error('Error adding client:', error.response?.data || error.message);
@@ -127,9 +120,7 @@ export class VlessVpnService {
         this.logger.warn(`VLESS сервер (ID: ${serverId}) не найден в БД`);
         return null;
       }
-      this.logger.info(
-        `VLESS сервер (ID: ${serverId}) загружен из БД и сохранен в кеш: ${JSON.stringify(server)}`,
-      );
+      this.logger.info(`VLESS сервер (ID: ${serverId}) загружен из БД и сохранен в кеш: ${JSON.stringify(server)}`);
       await this.cacheManager.set(cacheKey, server);
       return server;
     } catch (error) {
@@ -138,19 +129,17 @@ export class VlessVpnService {
     }
   }
 
-  async getInbounds(sessionId: string) {
+  async getInbounds() {
     try {
-      const response = await axios.get(
-        `http://138.124.115.185:12144/R35c0HVMFQSS5g8/panel/api/inbounds/get/1`,
-        {
-          headers: {
-            Cookie: `3x-ui=${sessionId}`,
-            Accept: 'application/json',
-          },
-          withCredentials: true,
+      const sessionId = await this.login('3qxMsK2EnQ', 'Xu7my7lLwY', 'http://212.64.199.79:30005/QhWvei6ByyWszNG');
+      const response = await axios.get(`http://212.64.199.79:30005/QhWvei6ByyWszNG/panel/api/inbounds/list`, {
+        headers: {
+          Cookie: `3x-ui=${sessionId}`,
+          Accept: 'application/json',
         },
-      );
-      console.log(response.data.obj.streamSettings);
+        withCredentials: true,
+      });
+      console.log(response.data);
       return response.data;
     } catch (error) {
       console.log(error.message);
@@ -250,7 +239,9 @@ export class VlessVpnService {
   async createVlessVpnKeySet(userId: number) {
     try {
       const servers = await this.getVlessServers();
+      console.log(servers);
       for (const server of servers) {
+        console.log(server, 'server');
         const sessionId = await this.login(server.username, server.password, server.api_url);
         const userData: AddVlessClientDto = {
           email: String(userId),
@@ -262,7 +253,7 @@ export class VlessVpnService {
           flow: 'xtls-rprx-vision',
           id: this.maskId(userId),
         };
-        await this.addClient(sessionId, userData);
+        await this.addClient(sessionId, server.api_url, userData);
       }
       await Promise.all(servers.map((server) => this.createVlessVpnKey(userId, server.id)));
 

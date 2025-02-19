@@ -10,6 +10,7 @@ import { BullModule } from '@nestjs/bullmq';
       { name: 'stopSubscriptions' },
       { name: 'collectStatisticQueue' },
       { name: 'disablePromoCodes' },
+      { name: 'removeOldToken' },
     ),
   ],
 })

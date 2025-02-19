@@ -72,6 +72,7 @@ export class preparingPaymentDataDto {
   payId?: string;
 }
 
+
 export class currentPromoDto {
   @ApiProperty({ description: 'id промокода', example: 1 })
   @IsNumber()

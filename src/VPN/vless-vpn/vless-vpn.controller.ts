@@ -15,23 +15,23 @@ export class VlessVpnController {
     this.logger.setContext(VlessVpnController.name);
   }
 
-  @Post('/add')
-  async addClient(@Body() clientData: any, @Req() req: Request) {
-    const cookie = req.headers.cookie;
-    if (!cookie) {
-      throw new HttpException('No cookies found', HttpStatus.UNAUTHORIZED);
-    }
-    const sessionId = cookie
-      ?.split('; ')
-      .find((c) => c.startsWith('3x-ui'))
-      ?.split('=')[1];
-    console.log(sessionId);
-    if (!sessionId) {
-      throw new HttpException('Session ID not found', HttpStatus.UNAUTHORIZED);
-    }
-
-    return this.vlessVpnService.addClient(sessionId, clientData);
-  }
+  // @Post('/add')
+  // async addClient(@Body() clientData: any, @Req() req: Request) {
+  //   const cookie = req.headers.cookie;
+  //   if (!cookie) {
+  //     throw new HttpException('No cookies found', HttpStatus.UNAUTHORIZED);
+  //   }
+  //   const sessionId = cookie
+  //     ?.split('; ')
+  //     .find((c) => c.startsWith('3x-ui'))
+  //     ?.split('=')[1];
+  //   console.log(sessionId);
+  //   if (!sessionId) {
+  //     throw new HttpException('Session ID not found', HttpStatus.UNAUTHORIZED);
+  //   }
+  //
+  //   return this.vlessVpnService.addClient(sessionId, clientData);
+  // }
   @Post('login')
   async login(@Res() res: Response) {
     const sessionId = await this.vlessVpnService.login(
@@ -46,7 +46,7 @@ export class VlessVpnController {
 
   @Get('stat')
   async getStat() {
-    return this.vlessVpnService.getVlessMetric(3, 1);
+    return this.vlessVpnService.getInbounds();
   }
 
   @Post('new_server')
