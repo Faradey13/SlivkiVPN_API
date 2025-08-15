@@ -38,6 +38,7 @@ import { HiddifyPCHandler } from './handlers/VPN/downloadApps/handleHiddifyPc';
 import { DownloadHiddifyHandler } from './handlers/VPN/downloadApps/handleDowndoaldHiddify';
 import { SubscriptionModule } from '../commerce/subscription/subscription.module';
 import { PaymentModule } from '../commerce/payment/payment.module';
+import { BotController } from './telegram-bot.controller';
 
 @Module({
   providers: [
@@ -88,5 +89,6 @@ import { PaymentModule } from '../commerce/payment/payment.module';
     RegionModule,
     VpnProtocolModule,
   ],
+  controllers: [BotController],
 })
 export class TelegramBotModule {}

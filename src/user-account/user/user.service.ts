@@ -250,16 +250,20 @@ export class UserService {
       this.logger.info(`Пользователь с ID ${id} найден в кэше`);
       return cachedUser;
     }
-
     try {
-      const user = await this.prisma.user.findUnique({ where: { id } });
+      const user = await this.prisma.user.findUnique({ where: { id: id } });
       if (user) {
-        await this.cacheManager.set(cacheKey, user);
+        const userForCache = JSON.parse(
+          JSON.stringify(user, (_, value) => (typeof value === 'bigint' ? value.toString() : value)),
+        );
+
+        await this.cacheManager.set(cacheKey, userForCache);
         this.logger.info(`Пользователь с ID ${id} найден в базе данных и сохранен в кэш`);
       }
       return user;
     } catch (error) {
-      this.logger.error(`Ошибка при получении пользователя с ID ${id}:`, error);
+      this.logger.error(`Ошибка при получении пользователя с ID ${id}:`, error.message);
+      console.log(error.message);
       throw new Error('Ошибка при получении пользователя по ID.');
     }
   }
@@ -327,5 +331,46 @@ export class UserService {
       this.logger.error(`Ошибка при удалении пользователя с ID ${userId}:`, error);
       throw new Error('Ошибка при удалении пользователя.');
     }
+  }
+
+  async createReferralForUser(user: { id: number }): Promise<void> {
+    let promoCode = this.PromoService.generatePromoCode({ start: 'Join', length: 5 });
+    this.logger.info(`Сгенерирован реферальный промокод: ${promoCode}`);
+
+    let uniqTest = await this.prisma.promo_codes.findUnique({ where: { code: promoCode } });
+    this.logger.debug(`Проверка уникальности промокода: ${uniqTest ? 'Не уникален' : 'Уникален'}`);
+
+    while (uniqTest) {
+      promoCode = this.PromoService.generatePromoCode({ start: 'Join', length: 5 });
+      this.logger.info(`Сгенерирован новый промокод: ${promoCode}`);
+      uniqTest = await this.prisma.promo_codes.findUnique({ where: { code: promoCode } });
+      this.logger.debug(`Проверка уникальности промокода: ${uniqTest ? 'Не уникален' : 'Уникален'}`);
+    }
+
+    this.logger.info(
+      `Начинается транзакция для создания смежных таблиц для пользователя ${user.id} и добавления промокода`,
+    );
+
+    await this.prisma.$transaction(async (prisma) => {
+      const promoCodeRecord = await prisma.promo_codes.create({
+        data: {
+          code: promoCode,
+          type: 'referral',
+          discount: Number(process.env.REFERRAL_DISCOUNT ?? 0), // безопасный fallback
+          period: 1000000,
+        },
+      });
+
+      this.logger.info(`Промокод "${promoCode}" добавлен в БД с ID: ${promoCodeRecord.id}`);
+
+      await prisma.referral_user.create({
+        data: {
+          user_id: user.id,
+          code_out_id: promoCodeRecord.id,
+        },
+      });
+
+      this.logger.info(`Запись в таблице referral_user создана для пользователя с ID: ${user.id}`);
+    });
   }
 }

@@ -1,6 +1,6 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
 import { VlessVpnService } from './vless-vpn.service';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PinoLogger } from 'nestjs-pino';
 import { server_vless } from '@prisma/client';
@@ -77,6 +77,15 @@ export class VlessVpnController {
     } catch (error) {
       this.logger.error(`Ошибка при создании VLESS сервера: ${error.message}`);
       throw new Error('Не удалось создать VLESS сервер');
+    }
+  }
+
+  @Post('vless_keys')
+  async vless(): Promise<void> {
+    try {
+      await this.vlessVpnService.getAllSubKeys();
+    } catch {
+      throw new Error('Не удалось дать всем ключ VLESS');
     }
   }
 }

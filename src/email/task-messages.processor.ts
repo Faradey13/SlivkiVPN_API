@@ -8,7 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UserService } from '../user-account/user/user.service';
 
 @Processor('emailQueue')
-export class EmailProcessor extends WorkerHost {
+export class TaskMessagesProcessor extends WorkerHost {
   private transporter: nodemailer.Transporter;
 
   constructor(
@@ -17,7 +17,7 @@ export class EmailProcessor extends WorkerHost {
     private readonly prisma: PrismaService,
   ) {
     super();
-    this.logger.setContext(EmailProcessor.name);
+    this.logger.setContext(TaskMessagesProcessor.name);
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),

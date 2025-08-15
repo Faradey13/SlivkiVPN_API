@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { createUserDto } from './dto/createUser.dto';
 import { UserService } from './user.service';
@@ -106,5 +106,18 @@ export class UserController {
       this.logger.error(`Ошибка при блокировке пользователя с ID: ${dto.userId}: ${error.message}`);
       throw new HttpException(`Ошибка: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  @Post('backfill')
+  @HttpCode(200)
+  async backfill(): Promise<string> {
+    const users = await this.usersService.getAllUsers()
+
+
+    for (const user of users) {
+      await this.usersService.createReferralForUser(user);
+    }
+
+    return `✅ Создано ${users.length} промокодов`;
   }
 }

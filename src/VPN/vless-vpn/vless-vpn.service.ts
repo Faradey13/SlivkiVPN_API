@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import qs from 'qs';
 import { AddVlessClientDto, CreateVlessServerDto } from './dto/vlessDto';
 import { PinoLogger } from 'nestjs-pino';
@@ -23,32 +23,99 @@ export class VlessVpnService {
     this.logger.setContext(VlessVpnService.name);
   }
 
-  async login(username: string, password: string, baseVlessUrl: string) {
+  private mask(val: string, show = 3): string {
+    if (!val) return '';
+    if (val.length <= show * 2) return '*'.repeat(val.length);
+    return `${val.slice(0, show)}...${val.slice(-show)}`;
+  }
+
+  async login(username: string, password: string, baseVlessUrl: string): Promise<string> {
+    const url = `${baseVlessUrl.replace(/\/+$/, '')}/login`;
+    const startedAt = new Date();
+    const t0 = Date.now();
+
     const data = qs.stringify({ username, password });
+
+    this.logger.info(
+      `3x-ui login: start url=${url}, user=${username}, https=${url.startsWith('https')} ts=${startedAt.toISOString()}`,
+    );
+    this.logger.info(`3x-ui login: payload form-encoded, keys=[username,password], length=${data.length}`);
+
+    let response;
     try {
-      const response = await axios.post(`${baseVlessUrl}/login`, data, {
+      response = await axios.post(url, data, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        // Ловим и логируем даже 3xx/4xx, иначе axios бросит ошибку до логов
+        validateStatus: () => true,
+        // Чтобы увидеть Set-Cookie на редиректе 302 от логина
+        maxRedirects: 0,
+        timeout: 15000,
+        withCredentials: true,
       });
-      const cookies = response.headers['set-cookie'];
-      if (!cookies) {
-        throw new HttpException('Session ID not found', HttpStatus.UNAUTHORIZED);
+    } catch (e) {
+      const err = e as AxiosError;
+      const code = (err as any)?.code;
+      const sys = (err as any)?.errno;
+      this.logger.error(`3x-ui login: network/axios error code=${code} errno=${sys} msg=${err.message}`);
+      if (err.request) {
+        const reqHost = err.request?.host ?? err.request?.socket?.servername ?? 'unknown';
+        const reqIp = err.request?.socket?.remoteAddress ?? 'unknown';
+        this.logger.error(`3x-ui login: request host=${reqHost} remote=${reqIp}`);
       }
-      const sessionCookie = cookies.find((cookie) => cookie.startsWith('3x-ui='));
-      if (!sessionCookie) {
-        throw new HttpException('Session cookie not found', HttpStatus.UNAUTHORIZED);
+      if (err.response) {
+        const prev =
+          typeof err.response.data === 'string'
+            ? err.response.data.slice(0, 500)
+            : JSON.stringify(err.response.data)?.slice(0, 500);
+        this.logger.error(
+          `3x-ui login: response status=${err.response.status}, headers=${JSON.stringify(err.response.headers)} bodyPreview=${prev}`,
+        );
       }
-
-      const sessionId = sessionCookie.split(';')[0].split('=')[1];
-
-      if (!sessionId) {
-        throw new HttpException('Invalid session response', HttpStatus.UNAUTHORIZED);
-      }
-
-      return sessionId;
-    } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
-      throw new HttpException(error.response?.data?.message || 'Login failed', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Login failed (network)', HttpStatus.BAD_GATEWAY);
     }
+
+    this.logger.info(
+      `3x-ui login: response status=${response.status} statusText=${response.statusText ?? ''}`,
+    );
+    this.logger.info(
+      `3x-ui login: headers ct=${response.headers['content-type'] || 'n/a'} location=${response.headers['location'] || 'n/a'}`,
+    );
+
+    if (response.status >= 300 && response.status < 400) {
+      this.logger.info(
+        `3x-ui login: got redirect ${response.status} -> ${response.headers['location'] || 'unknown'}`,
+      );
+    }
+
+    const cookies: string[] | undefined = response.headers['set-cookie'];
+    if (!cookies) {
+      this.logger.error('3x-ui login: no Set-Cookie header in response');
+      throw new HttpException('Session ID not found', HttpStatus.UNAUTHORIZED);
+    }
+
+    const cookieNames = cookies.map((c) => c.split(';')[0].split('=')[0]);
+    this.logger.info(`3x-ui login: cookies received [${cookieNames.join(', ')}]`);
+
+    // Основной поиск cookie; при необходимости добавь сюда альтернативные имена
+    const sessionCookie = cookies.find(
+      (c) => c.startsWith('3x-ui=') || c.startsWith('x-ui=') || c.startsWith('session='),
+    );
+
+    if (!sessionCookie) {
+      this.logger.error(`3x-ui login: session cookie not found; all cookies=${JSON.stringify(cookies)}`);
+      throw new HttpException('Session cookie not found', HttpStatus.UNAUTHORIZED);
+    }
+
+    const sessionId = sessionCookie.split(';')[0].split('=')[1];
+    if (!sessionId) {
+      this.logger.error('3x-ui login: parsed empty sessionId from cookie');
+      throw new HttpException('Invalid session response', HttpStatus.UNAUTHORIZED);
+    }
+
+    this.logger.info(`3x-ui login: sessionId len=${sessionId.length} preview=${this.mask(sessionId)}`);
+    this.logger.info(`3x-ui login: success in ${Date.now() - t0}ms`);
+
+    return sessionId;
   }
 
   async addClient(sessionId: string, ApiUrl: string, clientData: AddVlessClientDto) {
@@ -120,7 +187,9 @@ export class VlessVpnService {
         this.logger.warn(`VLESS сервер (ID: ${serverId}) не найден в БД`);
         return null;
       }
-      this.logger.info(`VLESS сервер (ID: ${serverId}) загружен из БД и сохранен в кеш: ${JSON.stringify(server)}`);
+      this.logger.info(
+        `VLESS сервер (ID: ${serverId}) загружен из БД и сохранен в кеш: ${JSON.stringify(server)}`,
+      );
       await this.cacheManager.set(cacheKey, server);
       return server;
     } catch (error) {
@@ -131,7 +200,11 @@ export class VlessVpnService {
 
   async getInbounds() {
     try {
-      const sessionId = await this.login('3qxMsK2EnQ', 'Xu7my7lLwY', 'http://212.64.199.79:30005/QhWvei6ByyWszNG');
+      const sessionId = await this.login(
+        '3qxMsK2EnQ',
+        'Xu7my7lLwY',
+        'http://212.64.199.79:30005/QhWvei6ByyWszNG',
+      );
       const response = await axios.get(`http://212.64.199.79:30005/QhWvei6ByyWszNG/panel/api/inbounds/list`, {
         headers: {
           Cookie: `3x-ui=${sessionId}`,
@@ -261,6 +334,13 @@ export class VlessVpnService {
     } catch (error) {
       this.logger.error(`Ошибка при создании набора VPN ключей: ${error.message}`);
       throw new Error('Ошибка при создании набора VPN ключей');
+    }
+  }
+
+  async getAllSubKeys() {
+    const userSub = await this.prisma.subscription.findMany({ where: { subscription_status: true } });
+    for (const user of userSub) {
+      await this.createVlessVpnKeySet(user.user_id);
     }
   }
 

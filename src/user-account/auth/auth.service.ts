@@ -8,7 +8,7 @@ import * as uuid from 'uuid';
 import { AuthResponseDto } from '../token/dto/tokenDto';
 import { PinoLogger } from 'nestjs-pino';
 import { PrismaService } from '../../prisma/prisma.service';
-import { EmailService } from '../../email/email.service';
+import { MessagesService } from '../../email/messages.service';
 
 
 @Injectable()
@@ -19,7 +19,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly tokenService: TokenService,
     private readonly prisma: PrismaService,
-    private readonly email: EmailService,
+    private readonly email: MessagesService,
   ) {
     this.logger.setContext(AuthService.name);
     this.transporter = nodemailer.createTransport({

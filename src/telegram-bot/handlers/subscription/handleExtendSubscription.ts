@@ -43,25 +43,28 @@ export class ExtendSubscriptionHandler {
     const buttons = subscriptionPlans.map((plan) => [
       Markup.button.callback(
         `${plan.name} - ${
-          (discount > 0 && code && code.type !== 'yearly') || (code && code.type === 'yearly' && plan.period === 365)
+          (discount > 0 && code && code.type !== 'yearly') ||
+          (code && code.type === 'yearly' && plan.period === 365)
             ? `${this.botUtils.strikethrough(plan.price)}₽ - `
             : ''
         }${this.paymentService.applyDiscount(
           plan.price,
-          (!plan.isFree && code && code.type !== 'yearly') || (code && code.type === 'yearly' && plan.period === 365)
+          (!plan.isFree && code && code.type !== 'yearly') ||
+            (code && code.type === 'yearly' && plan.period === 365)
             ? discount
             : 0,
         )}₽`,
         `${isFree.isAvailable && plan.isFree ? `free_pay:${plan.id}` : `payment:${plan.id}`}`,
       ),
     ]);
-    if (!subscription?.subscription_status) {
-      buttons.push([Markup.button.callback('⬅️ Назад', 'subscribe')]);
-    }
+    // if (!subscription?.subscription_status) {
+    //   buttons.push([Markup.button.callback('⬅️ Назад', 'subscribe')]);
+    // }
     buttons.push([Markup.button.callback('⏪ Назад в главное меню', 'back_to_menu')]);
-    const keyboard = Markup.inlineKeyboard(buttons);
     if (code) {
+      console.log(code, 'code');
       buttons.push(ExtendSubscription.promoCodeButton());
+      const keyboard = Markup.inlineKeyboard(buttons);
       await ctx.editMessageText(
         ExtendSubscription.purchaseText(
           code.type,
@@ -74,11 +77,16 @@ export class ExtendSubscriptionHandler {
     }
     if (!code && userPromoCodesNotActive.length > 0) {
       buttons.push(ExtendSubscription.promoCodeButton());
+      const keyboard = Markup.inlineKeyboard(buttons);
       await ctx.editMessageText(
-        ExtendSubscription.purchaseNoActivePromoText(subscription ? subscription?.subscription_status : false),
+        ExtendSubscription.purchaseNoActivePromoText(
+          subscription ? subscription?.subscription_status : false,
+        ),
         keyboard,
       );
-    } else {
+    }
+    if (!code && !userPromoCodesNotActive.length) {
+      const keyboard = Markup.inlineKeyboard(buttons);
       await ctx.editMessageText(
         ExtendSubscription.purchaseNoPromoText(subscription ? subscription?.subscription_status : false),
         keyboard,

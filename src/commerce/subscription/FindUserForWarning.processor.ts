@@ -1,14 +1,14 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { PinoLogger } from 'nestjs-pino';
 import { PrismaService } from '../../prisma/prisma.service';
-import { EmailService } from '../../email/email.service';
+import { MessagesService } from '../../email/messages.service';
 
 @Processor('findUserForWarning')
 export class FindUserForWarningProcessor extends WorkerHost {
   constructor(
     private readonly logger: PinoLogger,
     private readonly prisma: PrismaService,
-    private readonly emailService: EmailService,
+    private readonly emailService: MessagesService,
   ) {
     super();
     this.logger.setContext(FindUserForWarningProcessor.name);

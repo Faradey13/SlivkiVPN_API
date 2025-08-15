@@ -1,23 +1,28 @@
 import { Controller, OnModuleInit, Post, Req } from '@nestjs/common';
 import { Telegraf } from 'telegraf';
-import * as process from 'node:process';
+import { PinoLogger } from 'nestjs-pino';
 
-@Controller('webhook')
-export class BotController implements OnModuleInit {
+@Controller('tg')
+export class BotController {
   private bot: Telegraf;
-  constructor() {
-    this.bot = new Telegraf(process.env.TELEGRAM_TOKEN);
+  constructor(
+    private readonly logger: PinoLogger,
+  ) {
+    this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
+    this.logger.setContext(BotController.name);
   }
-  async onModuleInit() {
-    try {
-      await this.bot.telegram.setWebhook(`${process.env.BASE_URL}/webhook`);
-      console.log('Webhook set successfully!');
-    } catch (error) {
-      console.error('Error setting webhook:', error);
-    }
-  }
-  @Post()
-  async handleUpdate(@Req() req: any) {
-    await this.bot.handleUpdate(req.body);
-  }
+
+  //implements OnModuleInit - Добавить в класс
+  // async onModuleInit() {
+  //   try {
+  //     await this.bot.telegram.setWebhook(`${process.env.BASE_URL}/tg/webhook`);
+  //     console.log('Webhook set successfully!');
+  //   } catch (error) {
+  //     console.error('Error setting webhook:', error);
+  //   }
+  // }
+  // @Post('webhook')
+  // async handleUpdate(@Req() req: any) {
+  //   await this.bot.handleUpdate(req.body);
+  // }
 }

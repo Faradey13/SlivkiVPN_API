@@ -6,7 +6,7 @@ import { Redis } from 'ioredis';
 export class RedisHealthIndicator {
   private redis: Redis;
   constructor() {
-    this.redis = new Redis('redis://127.0.0.1:6379');
+    this.redis = new Redis('redis://redis:6379');
   }
 
   async isHealthy(): Promise<HealthIndicatorResult> {

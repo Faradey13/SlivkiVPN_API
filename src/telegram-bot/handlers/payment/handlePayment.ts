@@ -35,8 +35,10 @@ export class PaymentHandler {
     const subscription = await this.subscription.getUserSubscription(user.id);
     const plan = await this.subscriptionPlans.getSubscriptionPlanById(planId);
     const { discount, code, codeId } = await this.paymentService.getCurrentPromoCode(user.id);
-    const isYearly = plan.period !== 365 && code.type === 'yearly';
+    const isYearly = plan.period !== 365 && code && code.type === 'yearly';
+    console.log(isYearly);
     const amount = this.paymentService.applyDiscount(plan.price, plan.isFree || isYearly ? 0 : discount);
+    console.log(amount);
     this.logger.info(
       `Пользователь ID: ${user.id} оформляет покупку тарифа ${plan.id}, 
       со скидкой ${discount}, применен промокод: ${codeId}, сумма покупки: ${amount}`,

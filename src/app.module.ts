@@ -17,7 +17,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
 import { LoggerModule } from 'nestjs-pino';
-import { EmailModule } from './email/email.module';
+import { MessagesModule } from './email/messages.module';
 import { HealthCheckModule } from './health-check/health-check.module';
 import { VlessVpnModule } from './VPN/vless-vpn/vless-vpn.module';
 import moment from 'moment-timezone';
@@ -47,7 +47,7 @@ import { TaskModule } from './task/task.module';
     StatisticModule,
     BullModule.forRoot({
       connection: {
-        host: 'localhost',
+        host: 'redis',
         port: 6379,
       },
     }),
@@ -58,7 +58,7 @@ import { TaskModule } from './task/task.module';
       isGlobal: true,
       useFactory: async () => ({
         store: redisStore,
-        host: 'localhost',
+        host: 'redis',
         port: 6379,
         ttl: 60 * 60,
       }),
@@ -68,7 +68,7 @@ import { TaskModule } from './task/task.module';
         transport: {
           target: 'pino-loki',
           options: {
-            host: 'http://localhost:3100',
+            host: 'http://loki:3100',
             batching: true,
             interval: 5,
             replaceTimestamp: true,
@@ -98,7 +98,7 @@ import { TaskModule } from './task/task.module';
         },
       },
     }),
-    EmailModule,
+    MessagesModule,
     HealthCheckModule,
     VlessVpnModule,
     TaskModule,

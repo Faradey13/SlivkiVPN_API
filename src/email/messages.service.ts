@@ -3,7 +3,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 
 @Injectable()
-export class EmailService {
+export class MessagesService {
   constructor(@InjectQueue('emailQueue') private emailQueue: Queue) {}
 
   async sendActivationEmail(emailData: { email: string; link: string; type?: 'activation' }) {

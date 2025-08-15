@@ -13,18 +13,19 @@ model user {
   id                     Int                     @id @default(autoincrement())
   telegram_user_id       BigInt?                 @unique
   email                  String?                 @unique
-  telegram_name          String?                 @unique
+  telegram_name          String?
   is_activated           Boolean                 @default(false)
   is_banned              Boolean                 @default(false) //поля таблицы
   ban_reason             String?
-  created_at             DateTime                @default(now())
-  JWT_tokens             JWT_tokens[] // отношение к таблице JWT_tokens, один к многим
-  user_roles             user_roles[]
+  created_at             DateTime @default(now())
+
   subscription           subscription?
   user_protocol          user_protocol?
   free_subscription      free_subscription?
   subscription_statictic subscription_statictic?
   activation_codes       activation_codes? // отношение к таблице activation_codes, один к одному
+  JWT_tokens             JWT_tokens[] // отношение к таблице JWT_tokens, один к многим
+  user_roles             user_roles[]
   payment                payment[]
   vpn_keys               vpn_keys[]
   connection_statistic   connection_statistic[]

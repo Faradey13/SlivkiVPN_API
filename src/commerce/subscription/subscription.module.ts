@@ -6,7 +6,7 @@ import { FindUserForWarningProcessor } from './FindUserForWarning.processor';
 import { EndOldSubscriptionProcessor } from './endOldSubscription.processor';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { UserModule } from '../../user-account/user/user.module';
-import { EmailModule } from '../../email/email.module';
+import { MessagesModule } from '../../email/messages.module';
 import { OutlineVpnModule } from '../../VPN/outline-vpn/outline-vpn.module';
 import { VlessVpnModule } from '../../VPN/vless-vpn/vless-vpn.module';
 
@@ -23,7 +23,7 @@ import { VlessVpnModule } from '../../VPN/vless-vpn/vless-vpn.module';
     OutlineVpnModule,
     VlessVpnModule,
     UserModule,
-    EmailModule,
+    MessagesModule,
   ],
   exports: [SubscriptionService, SubscriptionPlanService],
 })

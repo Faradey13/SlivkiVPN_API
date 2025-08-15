@@ -11,7 +11,7 @@ import { YandexAuthService } from './auth_yandex.service';
 import { GoogleAuthController } from './auth_google.controller';
 import { AuthGoogleService } from './auth_google.service';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { EmailModule } from '../../email/email.module';
+import { MessagesModule } from '../../email/messages.module';
 
 @Module({
   providers: [
@@ -26,6 +26,6 @@ import { EmailModule } from '../../email/email.module';
     YandexAuthController,
     GoogleAuthController,
   ],
-  imports: [PrismaModule, UserModule, TokenModule, HttpModule, EmailModule],
+  imports: [PrismaModule, UserModule, TokenModule, HttpModule, MessagesModule],
 })
 export class AuthModule {}

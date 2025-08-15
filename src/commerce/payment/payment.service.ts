@@ -38,12 +38,14 @@ export class PaymentService {
   }
 
   async createPayment(dto: preparingPaymentDataDto): Promise<PaymentDetails> {
+    console.log(dto, 'dto');
     this.logger.info(`Начало создания платежа для пользователя с ID ${dto.userId}`);
     const preparedData = await this.preparingPaymentData({
       userId: dto.userId,
       planId: dto.planId,
       payId: dto.payId,
     });
+    console.log(preparedData);
     const paymentData: PaymentCreateRequest = {
       amount: {
         value: preparedData.amount,
@@ -302,8 +304,8 @@ export class PaymentService {
     this.logger.info('Подготовка данных для платежа пользователя', dto.userId);
     const { codeId, discount } = await this.getCurrentPromoCode(dto.userId);
     const plan = await this.subscriptionPlans.getSubscriptionPlanById(dto.planId);
-    const promoCode = await this.PromoService.getPromoCodeById(codeId);
-    const isNoYearly = plan.period !== 365 && promoCode.type === 'yearly';
+    const promoCode = codeId ? await this.PromoService.getPromoCodeById(codeId) : undefined;
+    const isNoYearly = plan.period !== 365 && promoCode && promoCode.type === 'yearly';
 
     const amount = this.applyDiscount(plan.price, isNoYearly ? 0 : discount);
     this.logger.info('Данные для платежа подготовлены для пользователя', dto.userId, {

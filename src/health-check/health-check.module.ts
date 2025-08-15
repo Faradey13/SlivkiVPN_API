@@ -19,12 +19,12 @@ import { TerminusModule } from '@nestjs/terminus';
     BullMQHealthIndicator,
     {
       provide: Redis,
-      useValue: 'redis://127.0.0.1:6379',
+      useValue: 'redis://redis:6379',
     },
     {
       provide: Queue,
       useValue: new Queue('default', {
-        connection: { host: '127.0.0.1', port: 6379 },
+        connection: { host: 'redis', port: 6379 },
       }),
     },
   ],
