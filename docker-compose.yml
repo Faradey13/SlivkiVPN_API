@@ -11,31 +11,41 @@ services:
     env_file:
       - .env
     depends_on:
+#      - postgres
       - redis
       - loki
     restart: always
-    networks:
-      - appnet   # 👈
+
+  postgres:
+    container_name: slivki-postgres
+    image: postgres:16
+    env_file: .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
 
   redis:
     container_name: slivki-redis
     image: redis:7
-    ports: ["6379:6379"]
+    ports:
+      - "6379:6379"
     restart: always
-    networks: [appnet]   # (не обязательно, но можно)
 
   loki:
     container_name: slivki-loki
     image: grafana/loki:2.9.4
-    ports: ["3100:3100"]
+    ports:
+      - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
     restart: always
-    networks: [appnet]
 
   grafana:
     container_name: slivki-grafana
     image: grafana/grafana:10.3.1
-    ports: ["3001:3000"]
+    ports:
+      - "3001:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -43,15 +53,9 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
-    depends_on: [loki]
+    depends_on:
+      - loki
     restart: always
-    networks: [appnet]
-
-networks:
-  appnet:
-    driver: bridge
-    driver_opts:
-      com.docker.network.driver.mtu: 1300   # 👈 ключевая строка
 
 volumes:
   pgdata:
